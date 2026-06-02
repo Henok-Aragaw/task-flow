@@ -1,8 +1,9 @@
 "use client"
 
 import { format } from "date-fns"
-import { AlignLeft, CalendarIcon, Check, CheckCircle, Clock, Edit2, User, X } from "lucide-react"
+import { AlignLeft, CalendarIcon, Check, CheckCircle, Clock, Edit2, User, X, AlertCircle } from "lucide-react"
 import type { ReactNode } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
@@ -11,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import type { ProfileRow, TaskStatus, useTaskDetailPanel } from "../hooks/use-task-detail-panel"
+import { updateTaskTitleSchema, updateTaskDescriptionSchema, validateForm } from "@/lib/schemas"
 
 type TaskDetailModel = ReturnType<typeof useTaskDetailPanel>
 
@@ -80,6 +82,8 @@ export function TitleField({ model }: { model: TaskDetailModel }) {
           placeholder="Enter task title"
           onSave={() => model.saveField("title")}
           onCancel={() => model.cancelField("title")}
+          validationSchema={updateTaskTitleSchema}
+          fieldName="title"
         />
       }
     />
@@ -226,6 +230,19 @@ export function DueDateField({ model }: { model: TaskDetailModel }) {
 
 export function DescriptionField({ model }: { model: TaskDetailModel }) {
   const isEditing = model.editField === "description"
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSave = () => {
+    setError(null)
+    
+    const validation = validateForm(updateTaskDescriptionSchema, { description: model.values.description })
+    if (!validation.success) {
+      setError(validation.errors?.description || "Validation failed")
+      return
+    }
+    
+    model.saveField("description")
+  }
 
   return (
     <div className="space-y-2">
@@ -234,10 +251,19 @@ export function DescriptionField({ model }: { model: TaskDetailModel }) {
         <div className="space-y-2">
           <Textarea
             value={model.values.description}
-            onChange={(event) => model.values.setDescription(event.target.value)}
-            className="bg-background border-border text-foreground min-h-[120px] focus-visible:ring-primary/25"
+            onChange={(event) => {
+              model.values.setDescription(event.target.value)
+              if (error) setError(null)
+            }}
+            className={`bg-background border-border text-foreground min-h-[120px] focus-visible:ring-primary/25 ${error ? "border-red-500 focus-visible:border-red-500" : ""}`}
             placeholder="Enter task description details..."
           />
+          {error && (
+            <div className="flex items-center gap-1.5 text-sm text-red-500 px-2">
+              <AlertCircle className="h-3.5 w-3.5" />
+              {error}
+            </div>
+          )}
           <div className="flex justify-end gap-2">
             <Button
               size="sm"
@@ -250,7 +276,7 @@ export function DescriptionField({ model }: { model: TaskDetailModel }) {
             <Button
               size="sm"
               className="bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={() => model.saveField("description")}
+              onClick={handleSave}
             >
               Save
             </Button>
@@ -284,22 +310,53 @@ function TextInputEditor({
   placeholder,
   onSave,
   onCancel,
+  validationSchema,
+  fieldName = "value",
 }: {
   value: string
   onChange: (value: string) => void
   placeholder: string
   onSave: () => void
   onCancel: () => void
+  validationSchema?: any
+  fieldName?: string
 }) {
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSave = () => {
+    setError(null)
+    
+    if (validationSchema) {
+      const validation = validateForm(validationSchema, { [fieldName]: value })
+      if (!validation.success) {
+        setError(validation.errors?.[fieldName] || "Validation failed")
+        return
+      }
+    }
+    
+    onSave()
+  }
+
   return (
-    <div className="flex items-center gap-2">
-      <Input
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="bg-background border-border text-foreground flex-1 focus-visible:ring-primary/25"
-        placeholder={placeholder}
-      />
-      <EditActions onSave={onSave} onCancel={onCancel} />
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <Input
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value)
+            if (error) setError(null)
+          }}
+          className={`bg-background border-border text-foreground flex-1 focus-visible:ring-primary/25 ${error ? "border-red-500 focus-visible:border-red-500" : ""}`}
+          placeholder={placeholder}
+        />
+        <EditActions onSave={handleSave} onCancel={onCancel} />
+      </div>
+      {error && (
+        <div className="flex items-center gap-1.5 text-sm text-red-500 px-2">
+          <AlertCircle className="h-3.5 w-3.5" />
+          {error}
+        </div>
+      )}
     </div>
   )
 }

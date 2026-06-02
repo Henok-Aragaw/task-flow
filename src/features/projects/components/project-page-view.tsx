@@ -2,6 +2,7 @@
 
 import { format } from "date-fns"
 import {
+  AlertCircle,
   AlertTriangle,
   CalendarIcon,
   CheckCircle2,
@@ -31,6 +32,7 @@ import type { TaskRow } from "@/features/tasks/queries"
 import { cn } from "@/lib/utils"
 import type { Database } from "@/types/database.types"
 import type { CreateTaskInput, TaskStatus, useProjectPage } from "../hooks/use-project-page"
+import { createTaskSchema, validateForm } from "@/lib/schemas"
 
 type ProjectPageModel = ReturnType<typeof useProjectPage>
 type MemberProfile = Pick<Database["public"]["Tables"]["profiles"]["Row"], "id" | "email" | "full_name">
@@ -382,18 +384,34 @@ function CreateTaskDialog({ model }: { model: ProjectPageModel }) {
   const [status, setStatus] = useState<TaskStatus>("todo")
   const [assignee, setAssignee] = useState("unassigned")
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
-    if (!title.trim()) return
+    setFieldErrors({})
 
-    const task: CreateTaskInput = { title, description, status, assignee, dueDate }
+    // Validate with Zod
+    const validation = validateForm(createTaskSchema, { 
+      title, 
+      description, 
+      status, 
+      assignee, 
+      dueDate 
+    })
+    
+    if (!validation.success) {
+      setFieldErrors(validation.errors || {})
+      return
+    }
+
+    const task: CreateTaskInput = validation.data!
     model.createDialog.submit(task)
     setTitle("")
     setDescription("")
     setStatus("todo")
     setAssignee("unassigned")
     setDueDate(undefined)
+    setFieldErrors({})
   }
 
   return (
@@ -407,12 +425,21 @@ function CreateTaskDialog({ model }: { model: ProjectPageModel }) {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground">Task Title</label>
               <Input
-                className="bg-background border-border text-foreground placeholder-muted-foreground focus-visible:ring-primary/25"
+                className={`bg-background border-border text-foreground placeholder-muted-foreground focus-visible:ring-primary/25 ${fieldErrors.title ? "border-red-500 focus-visible:border-red-500" : ""}`}
                 placeholder="e.g. Design user interface"
                 value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) => {
+                  setTitle(event.target.value)
+                  if (fieldErrors.title) setFieldErrors({ ...fieldErrors, title: "" })
+                }}
                 required
               />
+              {fieldErrors.title && (
+                <div className="flex items-center gap-1.5 text-sm text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {fieldErrors.title}
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <StatusField status={status} setStatus={setStatus} />
@@ -422,11 +449,20 @@ function CreateTaskDialog({ model }: { model: ProjectPageModel }) {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground">Description</label>
               <Textarea
-                className="bg-background border-border text-foreground min-h-[80px] focus-visible:ring-primary/25"
+                className={`bg-background border-border text-foreground min-h-[80px] focus-visible:ring-primary/25 ${fieldErrors.description ? "border-red-500 focus-visible:border-red-500" : ""}`}
                 placeholder="Task description details..."
                 value={description}
-                onChange={(event) => setDescription(event.target.value)}
+                onChange={(event) => {
+                  setDescription(event.target.value)
+                  if (fieldErrors.description) setFieldErrors({ ...fieldErrors, description: "" })
+                }}
               />
+              {fieldErrors.description && (
+                <div className="flex items-center gap-1.5 text-sm text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {fieldErrors.description}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
