@@ -25,6 +25,7 @@ src/
 │   └── layout.tsx            # Root layout, providers, and metadata
 ├── components/               # Reusable UI components
 │   ├── ui/                   # Design primitives and shadcn-based controls
+│   ├── auth/                 # Auth forms and layout (sign-in, sign-up)
 │   ├── workspace/            # Workspace selection and tabs
 │   ├── dashboard/            # Summary cards and dashboard widgets
 │   ├── task/                 # Task detail drawer and task UI components
@@ -37,7 +38,8 @@ src/
 ├── hooks/                    # App-wide hook abstractions and query provider
 ├── lib/                      # Shared utilities and Supabase client wrappers
 │   ├── supabase/             # Browser/server Supabase client setup
-│   └── utils.ts              # Shared helper utilities
+│   └── utils.ts  
+└── schemas.ts            # Shared helper utilities
 ├── stores/                   # Zustand UI store for client-side state
 ├── types/                    # Generated database typings
 supabase/                     # Supabase config, migrations, and edge function
@@ -48,6 +50,13 @@ supabase/                     # Supabase config, migrations, and edge function
 │   └── overdue-tasks/        # Overdue task reporting function
 └── migrations/               # Database migration files
 ```
+
+### Auth Architecture
+
+- **Page components** (`src/app/(auth)/**/page.tsx`) are **server components** that handle layout composition.
+- **Form components** (`src/components/auth/`) are **client components** containing form state, validation, and submission logic.
+- **Auth layout** (`src/components/auth/auth-layout.tsx`) provides shared UI (background grid, centering) for both sign-in and sign-up pages.
+- **Auth actions** (`src/features/auth/actions.ts`) are server-side functions handling Supabase auth operations.
 
 ---
 
