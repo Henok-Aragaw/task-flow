@@ -7,23 +7,27 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { toast } from "sonner"
-import { UserPlus, Mail, Lock, User, Loader2 } from "lucide-react"
+import { UserPlus, Mail, Lock, User, Loader2, AlertCircle } from "lucide-react"
+import { signUpSchema, validateForm } from "@/lib/schemas"
 
 export default function SignUpPage() {
   const [isPending, startTransition] = useTransition()
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!fullName || !email || !password) {
-      toast.error("Please fill in all fields.")
-      return
-    }
+    setFieldErrors({})
 
-    if (password.length < 6) {
-      toast.error("Password must be at least 6 characters.")
+    // Validate form data with Zod
+    const validation = validateForm(signUpSchema, { fullName, email, password })
+    if (!validation.success) {
+      setFieldErrors(validation.errors || {})
+      if (validation.errors?._error) {
+        toast.error(validation.errors._error)
+      }
       return
     }
 
@@ -49,7 +53,6 @@ export default function SignUpPage() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:32px_32px] opacity-30 pointer-events-none" />
 
       <Card className="w-full max-w-md border-border bg-card shadow-xl relative overflow-hidden rounded-2xl">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-primary" />
 
         <CardHeader className="pt-10 pb-6 text-center space-y-2">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 mb-2">
@@ -73,13 +76,22 @@ export default function SignUpPage() {
                   id="fullName"
                   type="text"
                   placeholder="John Doe"
-                  className="pl-10 h-11 bg-background border-border text-foreground placeholder-muted-foreground focus-visible:border-primary/50 focus-visible:ring-primary/25 rounded-xl transition-all"
+                  className={`pl-10 h-11 bg-background border-border text-foreground placeholder-muted-foreground focus-visible:border-primary/50 focus-visible:ring-primary/25 rounded-xl transition-all ${fieldErrors.fullName ? "border-red-500 focus-visible:border-red-500" : ""}`}
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => {
+                    setFullName(e.target.value)
+                    if (fieldErrors.fullName) setFieldErrors({ ...fieldErrors, fullName: "" })
+                  }}
                   disabled={isPending}
                   required
                 />
               </div>
+              {fieldErrors.fullName && (
+                <div className="flex items-center gap-1.5 text-sm text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {fieldErrors.fullName}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -92,13 +104,22 @@ export default function SignUpPage() {
                   id="email"
                   type="email"
                   placeholder="name@example.com"
-                  className="pl-10 h-11 bg-background border-border text-foreground placeholder-muted-foreground focus-visible:border-primary/50 focus-visible:ring-primary/25 rounded-xl transition-all"
+                  className={`pl-10 h-11 bg-background border-border text-foreground placeholder-muted-foreground focus-visible:border-primary/50 focus-visible:ring-primary/25 rounded-xl transition-all ${fieldErrors.email ? "border-red-500 focus-visible:border-red-500" : ""}`}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: "" })
+                  }}
                   disabled={isPending}
                   required
                 />
               </div>
+              {fieldErrors.email && (
+                <div className="flex items-center gap-1.5 text-sm text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {fieldErrors.email}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -111,17 +132,26 @@ export default function SignUpPage() {
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-10 h-11 bg-background border-border text-foreground placeholder-muted-foreground focus-visible:border-primary/50 focus-visible:ring-primary/25 rounded-xl transition-all"
+                  className={`pl-10 h-11 bg-background border-border text-foreground placeholder-muted-foreground focus-visible:border-primary/50 focus-visible:ring-primary/25 rounded-xl transition-all ${fieldErrors.password ? "border-red-500 focus-visible:border-red-500" : ""}`}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: "" })
+                  }}
                   disabled={isPending}
                   required
                 />
               </div>
+              {fieldErrors.password && (
+                <div className="flex items-center gap-1.5 text-sm text-red-500">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {fieldErrors.password}
+                </div>
+              )}
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col space-y-4 pt-4 pb-8">
+          <CardFooter className="flex flex-col space-y-4 pt-4 pb-8 mt-4">
             <Button
               type="submit"
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all font-semibold h-11 rounded-xl shadow-sm hover:shadow active:scale-[0.98]"

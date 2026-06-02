@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
-import { Plus, Loader2 } from "lucide-react"
+import { Plus, Loader2, AlertCircle } from "lucide-react"
+import { createWorkspaceSchema, validateForm } from "@/lib/schemas"
 
 export default function CreateWorkspaceTrigger() {
   const router = useRouter()
@@ -15,10 +16,20 @@ export default function CreateWorkspaceTrigger() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
   const [loading, setLoading] = useState(false)
+  const [fieldError, setFieldError] = useState<string | null>(null)
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || loading) return
+    setFieldError(null)
+
+    // Validate with Zod
+    const validation = validateForm(createWorkspaceSchema, { name })
+    if (!validation.success) {
+      setFieldError(validation.errors?.name || "Validation failed")
+      return
+    }
+
+    if (loading) return
 
     setLoading(true)
     try {
@@ -27,7 +38,7 @@ export default function CreateWorkspaceTrigger() {
 
       // Call RPC function to atomically create workspace and membership (bypassing RLS issues)
       const { data: ws, error: wsErr } = await supabase.rpc("create_workspace", {
-        workspace_name: name.trim(),
+        workspace_name: validation.data!.name,
       })
 
       if (wsErr) throw new Error(wsErr.message)
@@ -68,13 +79,22 @@ export default function CreateWorkspaceTrigger() {
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-foreground">Workspace Name</label>
                 <Input
-                  className="bg-background border-border text-foreground focus-visible:ring-primary/25"
+                  className={`bg-background border-border text-foreground focus-visible:ring-primary/25 ${fieldError ? "border-red-500 focus-visible:border-red-500" : ""}`}
                   placeholder="e.g. Acme Corporation"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    if (fieldError) setFieldError(null)
+                  }}
                   disabled={loading}
                   required
                 />
+                {fieldError && (
+                  <div className="flex items-center gap-1.5 text-sm text-red-500">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    {fieldError}
+                  </div>
+                )}
               </div>
             </div>
             <DialogFooter>
