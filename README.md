@@ -1,163 +1,142 @@
 # Premium SaaS Task Management Application
 
-A production-grade, highly-responsive SaaS Task Management application designed to operate with tenant isolation, PostgreSQL row-level security, optimistic UI status transitions, real-time collaboration updates, and an edge computing notification model.
+A production-ready SaaS task and project collaboration platform built with Next.js 16, React 19, Supabase, and strict TypeScript.
 
-## 🚀 Key Architectural Choices
+## 🚀 What this app delivers
 
-This application represents a clean, modern Next.js 16 and React 19 architecture crafted with strict state isolation boundaries.
-
-### State Management Separation
-* **Zustand (Global Visual UI State only):** In strict accordance with clean-architecture principles, Zustand is utilized *exclusively* for managing global visual interface parameters, specifically:
-  * Active Workspace selection & context switcher.
-  * Collapsed/Expanded states of the layout sidebars.
-  * Opening/closing/context values of the task detail sheet.
-  * High-level client preference states.
-* **TanStack Query (Server State Synchronization):** Exclusively holds and manages all server-originated resources. It is used to drive client-side caching, data fetching, background synchronization, and robust **Optimistic UI updates** for task mutations. When a user changes a task status, the client UI is instantaneously updated, a Postgres update request is sent in the background, and standard transactional consistency is guaranteed by query rollbacks on network failure alongside beautiful Sonner notifications.
+- Tenant-aware workspace isolation with per-user access control.
+- Workspace/project/task visibility enforced by Supabase Row Level Security (RLS).
+- Real-time task synchronization via Supabase subscriptions and client-side invalidation.
+- Optimistic UI updates, inline task editing, and smooth task status transitions.
+- An edge-compatible Supabase function for overdue task reporting.
 
 ---
 
-## 📂 Project Structure
-
-The project conforms to a clean, scalable folder architecture:
+## 📂 Repository structure
 
 ```text
 src/
-├── app/                      # Next.js 16 App Router pages
-│   ├── (auth)/               # Unified authentication routes (sign-in, sign-up)
-│   ├── dashboard/            # High-level workspace aggregate dashboard
-│   ├── projects/             # Direct interactive filtered project views
-│   ├── workspace/            # Workspace management & invitation control
-│   ├── globals.css           # Global theme variables & styles
-│   └── layout.tsx            # Root layout mapping Google Fonts & ThemeProvider
-├── components/               # Visual UI Components
-│   ├── ui/                   # Primitive design tokens powered by base-ui/shadcn
-│   ├── workspace/            # Workspace specific layouts & selectors
-│   ├── dashboard/            # Dashboard widgets & metric cards
-│   ├── task/                 # Interactive task tables & inline detail drawer
-│   └── shared/               # Universal sidebar layouts & navigation shell
-├── features/                 # Modular domain slices
-│   ├── auth/                 # Auth hooks & server actions
-│   ├── projects/             # Project creation and detail fetching
-│   ├── tasks/                # React Query hooks for task lists, updates & inline saves
-│   └── workspaces/           # Workspace membership & detail fetching
-├── hooks/                    # Dynamic hook abstractions (QueryProvider)
-├── lib/                      # Base configurations & helpers
-│   ├── supabase/             # Server/client SSR client generation & middleware
-│   └── utils.ts              # Shared visual class-mergers
-├── types/                    # DB TypeScript typings automatically mapped
-├── middleware.ts             # Auth session refresh middleware
-└── stores/                   # Zustand global UI store
+├── app/                      # Next.js App Router entrypoints
+│   ├── (auth)/               # Auth pages: sign-in, sign-up
+│   ├── dashboard/            # Workspace and project dashboard overview
+│   ├── projects/             # Project-level views and task clients
+│   ├── workspace/            # Workspace detail and membership UI
+│   ├── globals.css           # Global styles
+│   └── layout.tsx            # Root layout, providers, and metadata
+├── components/               # Reusable UI components
+│   ├── ui/                   # Design primitives and shadcn-based controls
+│   ├── workspace/            # Workspace selection and tabs
+│   ├── dashboard/            # Summary cards and dashboard widgets
+│   ├── task/                 # Task detail drawer and task UI components
+│   └── shared/               # Layout shell, sidebar, and shared UI patterns
+├── features/                 # Feature slices and data fetching logic
+│   ├── auth/                 # Auth actions and server-side logic
+│   ├── projects/             # Project queries and project page components
+│   ├── tasks/                # Task queries, task UI fields, and detail panel hooks
+│   └── workspaces/           # Workspace queries and page components
+├── hooks/                    # App-wide hook abstractions and query provider
+├── lib/                      # Shared utilities and Supabase client wrappers
+│   ├── supabase/             # Browser/server Supabase client setup
+│   └── utils.ts              # Shared helper utilities
+├── stores/                   # Zustand UI store for client-side state
+├── types/                    # Generated database typings
+supabase/                     # Supabase config, migrations, and edge function
+├── config.toml
+├── functions/                # Supabase edge functions
+│   ├── deno.json
+│   ├── import_map.json
+│   └── overdue-tasks/        # Overdue task reporting function
+└── migrations/               # Database migration files
 ```
 
 ---
 
-## 🗄️ Database Design & Row Level Security
+## 🛠 Key technologies
 
-The backend is fully powered by **Supabase PostgreSQL** with comprehensive **Row-Level Security (RLS)** active across every table to guarantee robust workspace isolation.
-
-### Key Schema Tables
-1. **`profiles`:** Secure public profiles synchronized with `auth.users` through a PostgreSQL trigger (`on_auth_user_created`).
-2. **`workspaces`:** Top-level SaaS accounts representing custom corporate or team divisions.
-3. **`workspace_members`:** A junction table defining workspace user access and roles (`owner` | `member`).
-4. **`projects`:** Collaborative folders nested under specific workspaces.
-5. **`tasks`:** Individual assignments belonging to projects, tracking titles, descriptions, due dates, assignee user IDs, and statuses (`todo`, `in_progress`, `done`).
-
-### Workspace Tenant Isolation Policies
-* Strict policies ensure a user is **completely isolated** inside the workspaces they belong to.
-* A user **cannot read, write, update, or delete** projects, members, or tasks associated with a workspace in which they do not have active membership in the `workspace_members` table.
-* To prevent recursive infinite-loop RLS evaluations and RLS insertion policy locks during new workspace creation, we implement custom database helper functions with `SECURITY DEFINER` privileges:
-  1. **`is_workspace_member(workspace_id)`**: Checks if the active user belongs to a workspace.
-  2. **`create_workspace(workspace_name)`**: Atomically inserts the workspace and adds the calling user as the workspace `owner` within a single transaction, avoiding post-insert SELECT policy check race conditions.
-  3. **`handle_new_user()`**: Trigger function executed automatically on signup. It syncs the profile, creates a default workspace (`My Workspace`) for the user, sets them as the owner, creates a `Getting Started 🚀` project, and seeds three interactive getting-started tasks. This ensures newly signed-up users are immediately greeted with live interactive data.
-
-```sql
--- Member validation helper
-create or replace function public.is_workspace_member(workspace_id uuid)
-returns boolean security definer set search_path = public as $$
-begin
-  return exists (
-    select 1 from public.workspace_members
-    where workspace_members.workspace_id = is_workspace_member.workspace_id
-    and workspace_members.user_id = auth.uid()
-  );
-end;
-$$ language plpgsql;
-```
+- Next.js 16
+- React 19
+- TypeScript with `strict` mode enabled
+- Supabase auth, database, and edge functions
+- @supabase/ssr client-side/server-side Supabase helpers
+- TanStack Query v5 for server-state caching and optimistic updates
+- Zustand for UI state management only
+- Zod for validation and React Hook Form for form handling
+- Tailwind CSS v4 with Base UI / shadcn design primitives
+- Sonner for toast notifications
 
 ---
 
-## 🛠️ Supabase Configuration & Setup Instructions
+## 🗄️ Database and Supabase logic
 
-### 1. Database Schema Deployment
-Execute the SQL statements inside [schema.sql](file:///c:/Users/asus/task/schema.sql) in your Supabase SQL editor:
-* This command will initialize all core tables (`profiles`, `workspaces`, `workspace_members`, `projects`, `tasks`).
-* Enables RLS across all tables and mounts the custom workspace isolation policies.
-* Declares the automated profile synchronization triggers.
-* Seeds the database with **2 workspaces, 4 projects, and 15 highly-differentiated tasks** mapped between two seed users (`alice@example.com` and `bob@example.com`).
+The database schema is defined in `schema.sql` and includes:
 
-> [!TIP]
-> **To see pre-seeded mock workspaces/projects/tasks on your newly registered account:**
-> Paste and run this SQL query in your **Supabase SQL Editor** to immediately link your existing auth user(s) to the mock workspaces:
-> ```sql
-> insert into public.workspace_members (workspace_id, user_id, role)
-> select w.id, u.id, 'member'
-> from public.workspaces w
-> cross join auth.users u
-> on conflict (workspace_id, user_id) do nothing;
-> ```
-> New registrations will automatically be joined via the updated trigger!
+- `profiles`: public user profile data synced from `auth.users`
+- `workspaces`: tenant groups for collaborative teams
+- `workspace_members`: membership and role (`owner` | `member`)
+- `projects`: project containers scoped to a workspace
+- `tasks`: task items with status, due date, assignee, and content
 
+### Supabase security model
 
-### 2. Live Database Synchronization & Realtime Setup
-To enable Postgres Realtime subscription channels:
-1. Navigate to the **Supabase Dashboard** -> **Database** -> **Replication**.
-2. Select your `supabase_realtime` publication slot.
-3. Enable replication tables for **`tasks`** (and optionally `projects` and `workspace_members`).
-4. This empowers the UI client's `supabase.channel()` listeners inside `project-client.tsx` to automatically receive server inserts/updates/deletes and seamlessly invalidate the TanStack Query cache.
+- Row Level Security (RLS) is enabled on all public tables.
+- Workspace membership is verified with `public.is_workspace_member(workspace_id)`.
+- Project membership is verified with `public.is_project_member(project_id)`.
+- Ownership checks are enforced with `public.is_workspace_owner(workspace_id)`.
+- Auth-triggered onboarding uses `public.handle_new_user()` to create:
+  - a default workspace,
+  - owner membership,
+  - a Getting Started project,
+  - and seeded welcome tasks.
 
-### 3. Deploying the Overdue Tasks Edge Function
-This application includes a serverless Deno Edge Function located at `supabase/functions/overdue-tasks/index.ts` which securely resolves overdue tasks under active RLS contexts:
-1. Install the Supabase CLI.
-2. Login and link your project:
-   ```bash
-   supabase login
-   supabase link --project-ref your-project-ref
-   ```
-3. Deploy the function:
-   ```bash
-   supabase functions deploy overdue-tasks
-   ```
-4. Define the `SUPABASE_URL` and `SUPABASE_ANON_KEY` secrets within your Supabase edge environment if they aren't pre-configured.
+### Seed and demo data
+
+The schema seeds:
+
+- 2 demo workspaces (`Acme Corp Workspace`, `Stark Industries Workspace`)
+- 2 demo users (`alice@example.com`, `bob@example.com`)
+- 4 demo projects
+- 15 demo tasks with mixed completed, in-progress, and overdue statuses
 
 ---
 
-## 🖥️ Local Development Setup
+## 🚧 Supabase edge function
 
-To spin up the modern client environment locally:
+The overdue tasks notifier is implemented at `supabase/functions/overdue-tasks/index.ts`.
+It accepts `project_id` and returns overdue tasks with assignee metadata.
 
-### 1. Configure Local Environment Variables
-Create a `.env.local` file inside the root directory with your Supabase coordinates:
+---
+
+## 🧪 Local development
+
+Create `.env.local` with your Supabase credentials:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-### 2. Install Dependencies & Launch Application
+Install and launch locally:
+
 ```bash
 npm install
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to access the interactive platform.
+
+Open `http://localhost:3000`.
 
 ---
 
-## 🚀 Production Deployment Checklist (Vercel)
+## ✅ Build and lint
 
-When deploying to Vercel, ensure you carry out the following checks to maintain production-grade durability:
+- `npm run build` — build the Next.js app
+- `npm run lint` — run Biome checks
+- `npm run format` — format code with Biome
 
-- [ ] **TypeScript Strict Compilation:** Run `npx tsc --noEmit` locally to confirm all strict type definitions pass compile loops.
-- [ ] **Configure Environment Variables:** Map `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` within the Vercel project configuration dashboard.
-- [ ] **Next.js SSR Cookielink & Middleware:** Ensure Next.js middleware is actively executing to block unauthorized access to dashboard/workspace pages without a Supabase session.
-- [ ] **Row-Level Security Audit:** Verify that RLS remains active for all public tables in production, preventing direct API client overrides.
-- [ ] **Supabase Edge Function Secrets:** Verify that the edge function can securely access client API endpoints.
-- [ ] **CDN Optimization:** Verify Vercel edge caching and serverless bundle execution boundaries.
+---
+
+## 📦 Production deployment notes
+
+- Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are configured in production.
+- Run `npx tsc --noEmit` to validate strict TypeScript before deployment.
+- Confirm Supabase RLS policies and edge function secrets are deployed correctly.
+- Verify middleware/access control for authenticated dashboard and workspace routes.
