@@ -1,6 +1,6 @@
-import { ReactNode } from "react"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import type { ReactNode } from "react";
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -19,5 +19,5 @@ export function AuthLayout({ children }: { children: ReactNode }) {
 
       {children}
     </div>
-  )
+  );
 }

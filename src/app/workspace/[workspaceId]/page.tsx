@@ -1,13 +1,13 @@
-import WorkspaceClient from "./workspace-client"
+import WorkspaceClient from "./workspace-client";
 
 interface WorkspacePageProps {
   params: Promise<{
-    workspaceId: string
-  }>
+    workspaceId: string;
+  }>;
 }
 
 export default async function WorkspacePage({ params }: WorkspacePageProps) {
-  const { workspaceId } = await params
+  const { workspaceId } = await params;
 
-  return <WorkspaceClient workspaceId={workspaceId} />
+  return <WorkspaceClient workspaceId={workspaceId} />;
 }

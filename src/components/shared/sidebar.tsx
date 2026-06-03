@@ -1,47 +1,54 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter, useParams } from "next/navigation"
-import { useTheme } from "next-themes"
-import { useUIStore } from "@/stores/ui-store"
-import { useWorkspaces, useWorkspace } from "@/features/workspaces/queries"
-import { useProjects } from "@/features/projects/queries"
-import { createClient } from "@/lib/supabase/client"
-import { signOutAction } from "@/features/auth/actions"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import {
+  Briefcase,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Folder,
+  Layers,
+  LayoutDashboard,
+  Loader2,
+  LogOut,
+  Moon,
+  Plus,
+  Settings,
+  Sun,
+} from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { toast } from "sonner"
-import {
-  Briefcase,
-  ChevronDown,
-  Plus,
-  Folder,
-  LayoutDashboard,
-  LogOut,
-  Moon,
-  Sun,
-  ChevronLeft,
-  ChevronRight,
-  Settings,
-  Layers,
-  Loader2,
-} from "lucide-react"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { signOutAction } from "@/features/auth/actions";
+import { useCurrentUser } from "@/features/auth/queries";
+import { useProjects } from "@/features/projects/queries";
+import { useWorkspace, useWorkspaces } from "@/features/workspaces/queries";
+import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
+import { useUIStore } from "@/stores/ui-store";
 
 export default function Sidebar() {
-  const router = useRouter()
-  const params = useParams()
-  const supabase = createClient()
-  const { resolvedTheme, setTheme } = useTheme()
+  const router = useRouter();
+  const params = useParams();
+  const supabase = createClient();
+  const { resolvedTheme, setTheme } = useTheme();
 
   // Zustand Store
   const {
@@ -49,106 +56,101 @@ export default function Sidebar() {
     setActiveWorkspaceId,
     sidebarOpen,
     toggleSidebar,
-  } = useUIStore()
+  } = useUIStore();
 
   // Queries
-  const { data: workspaces, refetch: refetchWorkspaces } = useWorkspaces()
-  const { data: projects } = useProjects(activeWorkspaceId)
-  const { data: activeWorkspace } = useWorkspace(activeWorkspaceId)
+  const { data: workspaces, refetch: refetchWorkspaces } = useWorkspaces();
+  const { data: projects } = useProjects(activeWorkspaceId);
+  const { data: activeWorkspace } = useWorkspace(activeWorkspaceId);
+  const { data: userProfile } = useCurrentUser();
 
   // Local state
-  const [createOpen, setCreateOpen] = useState(false)
-  const [newWorkspaceName, setNewWorkspaceName] = useState("")
-  const [userProfile, setUserProfile] = useState<{ email: string; name: string } | null>(null)
-  const [mounted, setMounted] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState("");
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Sync route param workspaceId with Zustand activeWorkspaceId
   useEffect(() => {
     if (params?.workspaceId) {
-      setActiveWorkspaceId(params.workspaceId as string)
-      return
+      setActiveWorkspaceId(params.workspaceId as string);
+      return;
     }
 
-    if (!workspaces) return
+    if (!workspaces) return;
 
     if (workspaces.length === 0) {
-      if (activeWorkspaceId) setActiveWorkspaceId(null)
-      return
+      if (activeWorkspaceId) setActiveWorkspaceId(null);
+      return;
     }
 
-    const canAccessActiveWorkspace = workspaces.some((ws) => ws.id === activeWorkspaceId)
+    const canAccessActiveWorkspace = workspaces.some(
+      (ws) => ws.id === activeWorkspaceId,
+    );
     if (!activeWorkspaceId || !canAccessActiveWorkspace) {
-      setActiveWorkspaceId(workspaces[0].id)
+      setActiveWorkspaceId(workspaces[0].id);
     }
-  }, [params, workspaces, activeWorkspaceId, setActiveWorkspaceId])
-
-  // Get current user details
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) {
-        setUserProfile({
-          email: data.user.email || "",
-          name: data.user.user_metadata?.full_name || data.user.email?.split("@")[0] || "User",
-        })
-      }
-    })
-  }, [supabase])
+  }, [params, workspaces, activeWorkspaceId, setActiveWorkspaceId]);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   // Create Workspace
   const handleCreateWorkspace = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newWorkspaceName.trim()) return
-    if (loading) return
+    e.preventDefault();
+    if (!newWorkspaceName.trim()) return;
+    if (loading) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       // Call RPC function to atomically create workspace and membership (bypassing RLS issues)
-      const { data: ws, error: wsErr } = await supabase.rpc("create_workspace", {
-        workspace_name: newWorkspaceName.trim(),
-      })
+      const { data: ws, error: wsErr } = await supabase.rpc(
+        "create_workspace",
+        {
+          workspace_name: newWorkspaceName.trim(),
+        },
+      );
 
-      if (wsErr) throw new Error(wsErr.message)
-      if (!ws) throw new Error("Workspace was not returned")
+      if (wsErr) throw new Error(wsErr.message);
+      if (!ws) throw new Error("Workspace was not returned");
 
-      toast.success("Workspace created successfully!")
-      setNewWorkspaceName("")
-      setCreateOpen(false)
-      refetchWorkspaces()
-      setActiveWorkspaceId(ws.id)
-      router.push(`/workspace/${ws.id}`)
+      toast.success("Workspace created successfully!");
+      setNewWorkspaceName("");
+      setCreateOpen(false);
+      refetchWorkspaces();
+      setActiveWorkspaceId(ws.id);
+      router.push(`/workspace/${ws.id}`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Unknown error"
-      toast.error(`Failed to create workspace: ${msg}`)
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error(`Failed to create workspace: ${msg}`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Handle Workspace Switch
   const handleSwitchWorkspace = (id: string) => {
-    setActiveWorkspaceId(id)
-    router.push(`/workspace/${id}`)
-  }
+    setActiveWorkspaceId(id);
+    router.push(`/workspace/${id}`);
+  };
 
   // Handle Project Navigation
   const handleProjectClick = (projectId: string) => {
-    router.push(`/projects/${projectId}`)
-  }
+    router.push(`/projects/${projectId}`);
+  };
 
   return (
     <>
       <aside
         className={cn(
           "flex flex-col bg-sidebar border-r border-sidebar-border text-sidebar-foreground transition-all duration-300 relative h-full",
-          sidebarOpen ? "w-64" : "w-16"
+          sidebarOpen ? "w-64" : "w-16",
         )}
       >
         {/* Workspace Selector Area */}
@@ -169,7 +171,10 @@ export default function Sidebar() {
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 ml-auto" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-popover border-border text-popover-foreground" align="start">
+              <DropdownMenuContent
+                className="w-56 bg-popover border-border text-popover-foreground"
+                align="start"
+              >
                 <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
                   Workspaces
                 </div>
@@ -193,7 +198,10 @@ export default function Sidebar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex h-8 w-8 mx-auto items-center justify-center rounded bg-sidebar-accent text-sidebar-foreground font-semibold cursor-pointer" onClick={() => toggleSidebar()}>
+            <div
+              className="flex h-8 w-8 mx-auto items-center justify-center rounded bg-sidebar-accent text-sidebar-foreground font-semibold cursor-pointer"
+              onClick={() => toggleSidebar()}
+            >
               <Layers className="h-4 w-4" />
             </div>
           )}
@@ -216,10 +224,12 @@ export default function Sidebar() {
           {/* Main Dashboard Link */}
           <div className="space-y-1">
             <button
+              type="button"
               onClick={() => router.push("/dashboard")}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground",
-                !activeWorkspaceId && "text-sidebar-accent-foreground bg-sidebar-accent"
+                !activeWorkspaceId &&
+                  "text-sidebar-accent-foreground bg-sidebar-accent",
               )}
             >
               <LayoutDashboard className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -227,10 +237,13 @@ export default function Sidebar() {
             </button>
             {activeWorkspaceId && (
               <button
+                type="button"
                 onClick={() => router.push(`/workspace/${activeWorkspaceId}`)}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-muted-foreground",
-                  params?.workspaceId === activeWorkspaceId && !params?.projectId && "text-sidebar-accent-foreground bg-sidebar-accent"
+                  params?.workspaceId === activeWorkspaceId &&
+                    !params?.projectId &&
+                    "text-sidebar-accent-foreground bg-sidebar-accent",
                 )}
               >
                 <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -246,8 +259,11 @@ export default function Sidebar() {
                 <div className="flex items-center justify-between px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                   <span>Projects</span>
                   <button
+                    type="button"
                     className="hover:text-foreground transition-colors"
-                    onClick={() => router.push(`/workspace/${activeWorkspaceId}`)}
+                    onClick={() =>
+                      router.push(`/workspace/${activeWorkspaceId}`)
+                    }
                   >
                     <Plus className="h-3.5 w-3.5" />
                   </button>
@@ -257,27 +273,30 @@ export default function Sidebar() {
               )}
 
               <div className="space-y-1">
-                {projects && projects.length > 0 ? (
-                  projects.map((proj) => (
-                    <button
-                      key={proj.id}
-                      onClick={() => handleProjectClick(proj.id)}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                        params?.projectId === proj.id ? "text-sidebar-accent-foreground bg-sidebar-accent font-semibold" : "text-muted-foreground"
-                      )}
-                    >
-                      <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
-                      {sidebarOpen && <span className="truncate">{proj.name}</span>}
-                    </button>
-                  ))
-                ) : (
-                  sidebarOpen && (
-                    <span className="px-3 text-xs text-muted-foreground/60 italic block">
-                      No projects created
-                    </span>
-                  )
-                )}
+                {projects && projects.length > 0
+                  ? projects.map((proj) => (
+                      <button
+                        key={proj.id}
+                        type="button"
+                        onClick={() => handleProjectClick(proj.id)}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                          params?.projectId === proj.id
+                            ? "text-sidebar-accent-foreground bg-sidebar-accent font-semibold"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
+                        {sidebarOpen && (
+                          <span className="truncate">{proj.name}</span>
+                        )}
+                      </button>
+                    ))
+                  : sidebarOpen && (
+                      <span className="px-3 text-xs text-muted-foreground/60 italic block">
+                        No projects created
+                      </span>
+                    )}
               </div>
             </div>
           )}
@@ -289,21 +308,29 @@ export default function Sidebar() {
           <div className="flex items-center justify-between">
             {sidebarOpen ? (
               <>
-                <span className="text-xs text-muted-foreground font-medium">Theme</span>
+                <span className="text-xs text-muted-foreground font-medium">
+                  Theme
+                </span>
                 <div className="flex bg-sidebar-accent/50 rounded-lg p-0.5 border border-sidebar-border">
                   <button
+                    type="button"
                     className={cn(
                       "p-1.5 rounded-md transition-all duration-200",
-                      mounted && resolvedTheme === "light" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      mounted && resolvedTheme === "light"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                     onClick={() => setTheme("light")}
                   >
                     <Sun className="h-3.5 w-3.5" />
                   </button>
                   <button
+                    type="button"
                     className={cn(
                       "p-1.5 rounded-md transition-all duration-200",
-                      mounted && resolvedTheme === "dark" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      mounted && resolvedTheme === "dark"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
                     )}
                     onClick={() => setTheme("dark")}
                   >
@@ -313,6 +340,7 @@ export default function Sidebar() {
               </>
             ) : (
               <button
+                type="button"
                 className="mx-auto p-2 text-muted-foreground hover:text-foreground"
                 onClick={() => toggleSidebar()}
               >
@@ -350,7 +378,10 @@ export default function Sidebar() {
                   >
                     <Settings className="h-4 w-4" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-popover border-border text-popover-foreground" align="end">
+                  <DropdownMenuContent
+                    className="bg-popover border-border text-popover-foreground"
+                    align="end"
+                  >
                     <DropdownMenuItem
                       className="hover:bg-accent focus:bg-accent cursor-pointer text-red-500 flex items-center gap-2"
                       onClick={() => signOutAction()}
@@ -375,7 +406,9 @@ export default function Sidebar() {
           <form onSubmit={handleCreateWorkspace}>
             <div className="py-4 space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Workspace Name</label>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Workspace Name
+                </label>
                 <Input
                   className="bg-background border-border text-foreground"
                   placeholder="e.g. Acme Corporation"
@@ -387,10 +420,20 @@ export default function Sidebar() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" className="border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => setCreateOpen(false)} disabled={loading}>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                onClick={() => setCreateOpen(false)}
+                disabled={loading}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
+              <Button
+                type="submit"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -405,5 +448,5 @@ export default function Sidebar() {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

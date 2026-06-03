@@ -1,15 +1,28 @@
-"use client"
+"use client";
 
-import { format } from "date-fns"
-import { CheckCircle2, Plus, ExternalLink, Trash2 } from "lucide-react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card, CardDescription, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { TaskRow } from "@/features/tasks/queries"
-import type { TaskStatus } from "../hooks/use-project-page"
+import { format } from "date-fns";
+import { CheckCircle2, ExternalLink, Plus, Trash2 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type { TaskRow } from "@/features/tasks/queries";
+import type { TaskStatus } from "../hooks/use-project-page";
 
 export function TasksTable({
   tasks,
@@ -17,20 +30,28 @@ export function TasksTable({
   onOpenDetail,
   onRequestDeleteTask,
 }: {
-  tasks: TaskRow[]
-  onStatusChange: (taskId: string, status: TaskStatus) => void
-  onOpenDetail: (taskId: string) => void
-  onRequestDeleteTask: (taskId: string) => void
+  tasks: TaskRow[];
+  onStatusChange: (taskId: string, status: TaskStatus) => void;
+  onOpenDetail: (taskId: string) => void;
+  onRequestDeleteTask: (taskId: string) => void;
 }) {
   return (
     <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900/20 shadow-sm">
       <Table>
         <TableHeader className="bg-zinc-50 dark:bg-zinc-900/40 border-b border-zinc-200 dark:border-zinc-800">
           <TableRow className="hover:bg-transparent">
-            <TableHead className="text-zinc-800 dark:text-zinc-300 font-semibold py-4 pl-6">Title</TableHead>
-            <TableHead className="text-zinc-800 dark:text-zinc-300 font-semibold py-4">Status</TableHead>
-            <TableHead className="text-zinc-800 dark:text-zinc-300 font-semibold py-4">Assignee</TableHead>
-            <TableHead className="text-zinc-800 dark:text-zinc-300 font-semibold py-4">Due Date</TableHead>
+            <TableHead className="text-zinc-800 dark:text-zinc-300 font-semibold py-4 pl-6">
+              Title
+            </TableHead>
+            <TableHead className="text-zinc-800 dark:text-zinc-300 font-semibold py-4">
+              Status
+            </TableHead>
+            <TableHead className="text-zinc-800 dark:text-zinc-300 font-semibold py-4">
+              Assignee
+            </TableHead>
+            <TableHead className="text-zinc-800 dark:text-zinc-300 font-semibold py-4">
+              Due Date
+            </TableHead>
             <TableHead className="text-zinc-800 dark:text-zinc-300 font-semibold py-4 text-right pr-6">
               Actions
             </TableHead>
@@ -49,7 +70,7 @@ export function TasksTable({
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }
 
 function TaskRowItem({
@@ -58,16 +79,16 @@ function TaskRowItem({
   onOpenDetail,
   onRequestDeleteTask,
 }: {
-  task: TaskRow
-  onStatusChange: (taskId: string, status: TaskStatus) => void
-  onOpenDetail: (taskId: string) => void
-  onRequestDeleteTask: (taskId: string) => void
+  task: TaskRow;
+  onStatusChange: (taskId: string, status: TaskStatus) => void;
+  onOpenDetail: (taskId: string) => void;
+  onRequestDeleteTask: (taskId: string) => void;
 }) {
   const initial = task.profiles?.full_name
     ? task.profiles.full_name.charAt(0).toUpperCase()
     : task.profiles?.email
       ? task.profiles.email.charAt(0).toUpperCase()
-      : "?"
+      : "?";
 
   return (
     <TableRow className="border-b border-zinc-200 dark:border-zinc-800/80 hover:bg-zinc-50 dark:hover:bg-zinc-900/30 transition-colors">
@@ -84,7 +105,8 @@ function TaskRowItem({
         <Select
           value={task.status}
           onValueChange={(value) => {
-            if (value === "todo" || value === "in_progress" || value === "done") onStatusChange(task.id, value)
+            if (value === "todo" || value === "in_progress" || value === "done")
+              onStatusChange(task.id, value);
           }}
         >
           <SelectTrigger className="w-32 bg-muted border-border text-foreground h-8 text-xs font-semibold focus:ring-ring">
@@ -131,7 +153,7 @@ function TaskRowItem({
         </Button>
       </TableCell>
     </TableRow>
-  )
+  );
 }
 
 export function TasksTableSkeleton() {
@@ -154,10 +176,14 @@ export function TasksTableSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
-export function TasksEmptyState({ onCreateClick }: { onCreateClick: () => void }) {
+export function TasksEmptyState({
+  onCreateClick,
+}: {
+  onCreateClick: () => void;
+}) {
   return (
     <Card className="border-dashed border-zinc-300 dark:border-zinc-800 bg-transparent flex flex-col items-center justify-center p-12 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-500 mb-4 border border-zinc-200 dark:border-zinc-800">
@@ -165,7 +191,8 @@ export function TasksEmptyState({ onCreateClick }: { onCreateClick: () => void }
       </div>
       <CardTitle className="text-lg font-bold mb-1">No Tasks Found</CardTitle>
       <CardDescription className="text-zinc-500 mb-6 max-w-sm">
-        No tasks match your active filters, or this project is empty. Add a new task to get started!
+        No tasks match your active filters, or this project is empty. Add a new
+        task to get started!
       </CardDescription>
       <Button
         onClick={onCreateClick}
@@ -175,5 +202,5 @@ export function TasksEmptyState({ onCreateClick }: { onCreateClick: () => void }
         Create Task
       </Button>
     </Card>
-  )
+  );
 }

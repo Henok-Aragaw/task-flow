@@ -1,116 +1,139 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import type { FormEvent } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import { useProject, useUpdateProject, useDeleteProject } from "@/features/projects/queries"
-import { useCreateTask, useOverdueTasks, useTasks, useUpdateTaskStatus } from "@/features/tasks/queries"
-import { useWorkspaceMembers } from "@/features/workspaces/queries"
-import { createClient } from "@/lib/supabase/client"
-import { useUIStore } from "@/stores/ui-store"
-import type { Database } from "@/types/database.types"
+import { useQueryClient } from "@tanstack/react-query";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import {
+  useDeleteProject,
+  useProject,
+  useUpdateProject,
+} from "@/features/projects/queries";
+import {
+  useCreateTask,
+  useOverdueTasks,
+  useTasks,
+  useUpdateTaskStatus,
+} from "@/features/tasks/queries";
+import { useWorkspaceMembers } from "@/features/workspaces/queries";
+import { createClient } from "@/lib/supabase/client";
+import { useUIStore } from "@/stores/ui-store";
+import type { Database } from "@/types/database.types";
 
-export type TaskStatus = "todo" | "in_progress" | "done"
+export type TaskStatus = "todo" | "in_progress" | "done";
 
 export interface CreateTaskInput {
-  title: string
-  description: string
-  status: TaskStatus
-  assignee: string
-  dueDate: Date | undefined
+  title: string;
+  description: string;
+  status: TaskStatus;
+  assignee: string;
+  dueDate: Date | undefined;
 }
 
 export function useProjectPage(projectId: string) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const queryClient = useQueryClient()
-  const supabase = createClient()
-  const { openTaskDetailPanel, taskDetailPanelTaskId } = useUIStore()
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const supabase = createClient();
+  const { openTaskDetailPanel, taskDetailPanelTaskId } = useUIStore();
 
-  const searchFilter = searchParams.get("search") || ""
-  const statusFilter = (searchParams.get("status") || undefined) as TaskStatus | undefined
-  const assigneeFilter = searchParams.get("assignee") || ""
+  const searchFilter = searchParams.get("search") || "";
+  const statusFilter = (searchParams.get("status") || undefined) as
+    | TaskStatus
+    | undefined;
+  const assigneeFilter = searchParams.get("assignee") || "";
 
   const filters = useMemo(
-    () => ({ search: searchFilter, status: statusFilter, assignee: assigneeFilter }),
+    () => ({
+      search: searchFilter,
+      status: statusFilter,
+      assignee: assigneeFilter,
+    }),
     [searchFilter, statusFilter, assigneeFilter],
-  )
+  );
 
-  const projectQuery = useProject(projectId)
-  const workspaceId = projectQuery.data?.workspace_id || null
-  const membersQuery = useWorkspaceMembers(workspaceId)
-  const tasksQuery = useTasks(projectId, filters)
-  const overdueTasksQuery = useOverdueTasks(projectId)
-  const updateStatusMutation = useUpdateTaskStatus(projectId, filters)
-  const createTaskMutation = useCreateTask(projectId)
-  
-  const updateProjectMutation = useUpdateProject(workspaceId)
-  const deleteProjectMutation = useDeleteProject(workspaceId)
+  const projectQuery = useProject(projectId);
+  const workspaceId = projectQuery.data?.workspace_id || null;
+  const membersQuery = useWorkspaceMembers(workspaceId);
+  const tasksQuery = useTasks(projectId, filters);
+  const overdueTasksQuery = useOverdueTasks(projectId);
+  const updateStatusMutation = useUpdateTaskStatus(projectId, filters);
+  const createTaskMutation = useCreateTask(projectId);
 
-  const [createOpen, setCreateOpen] = useState(false)
-  const [projectEditOpen, setProjectEditOpen] = useState(false)
-  const [projectEditName, setProjectEditName] = useState("")
-  const [projectDeleteOpen, setProjectDeleteOpen] = useState(false)
+  const updateProjectMutation = useUpdateProject(workspaceId);
+  const deleteProjectMutation = useDeleteProject(workspaceId);
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [projectEditOpen, setProjectEditOpen] = useState(false);
+  const [projectEditName, setProjectEditName] = useState("");
+  const [projectDeleteOpen, setProjectDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (projectQuery.data?.name) {
-      setProjectEditName(projectQuery.data.name)
+      setProjectEditName(projectQuery.data.name);
     }
-  }, [projectQuery.data?.name])
+  }, [projectQuery.data?.name]);
 
   useEffect(() => {
     const channel = supabase
       .channel(`project-tasks-realtime-${projectId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "tasks", filter: `project_id=eq.${projectId}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "tasks",
+          filter: `project_id=eq.${projectId}`,
+        },
         (payload) => {
-          queryClient.invalidateQueries({ queryKey: ["tasks", projectId] })
-          queryClient.invalidateQueries({ queryKey: ["tasks-workspace"] })
-          queryClient.invalidateQueries({ queryKey: ["overdue-tasks", projectId] })
+          queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+          queryClient.invalidateQueries({ queryKey: ["tasks-workspace"] });
+          queryClient.invalidateQueries({
+            queryKey: ["overdue-tasks", projectId],
+          });
 
-          const newRow = payload.new as Database["public"]["Tables"]["tasks"]["Row"]
+          const newRow =
+            payload.new as Database["public"]["Tables"]["tasks"]["Row"];
           if (newRow?.id === taskDetailPanelTaskId) {
-            queryClient.invalidateQueries({ queryKey: ["task", newRow.id] })
+            queryClient.invalidateQueries({ queryKey: ["task", newRow.id] });
           }
         },
       )
-      .subscribe()
+      .subscribe();
 
     return () => {
-      channel.unsubscribe()
-    }
-  }, [projectId, queryClient, supabase, taskDetailPanelTaskId])
+      channel.unsubscribe();
+    };
+  }, [projectId, queryClient, supabase, taskDetailPanelTaskId]);
 
   const updateUrlParam = (name: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams.toString());
     if (value) {
-      params.set(name, value)
+      params.set(name, value);
     } else {
-      params.delete(name)
+      params.delete(name);
     }
 
-    const query = params.toString()
-    router.push(query ? `${pathname}?${query}` : pathname)
-  }
+    const query = params.toString();
+    router.push(query ? `${pathname}?${query}` : pathname);
+  };
 
   const updateStatus = (taskId: string, status: TaskStatus) => {
-    updateStatusMutation.mutate({ taskId, status })
-  }
+    updateStatusMutation.mutate({ taskId, status });
+  };
 
   const deleteTask = async (taskId: string) => {
-    const { error } = await supabase.from("tasks").delete().eq("id", taskId)
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
     if (error) {
-      toast.error(`Failed to delete task: ${error.message}`)
-      return
+      toast.error(`Failed to delete task: ${error.message}`);
+      return;
     }
 
-    toast.success("Task deleted!")
-    queryClient.invalidateQueries({ queryKey: ["tasks", projectId] })
-  }
+    toast.success("Task deleted!");
+    queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+  };
 
   const createTask = (data: CreateTaskInput) => {
     createTaskMutation.mutate(
@@ -123,36 +146,36 @@ export function useProjectPage(projectId: string) {
         due_date: data.dueDate ? data.dueDate.toISOString() : null,
       },
       { onSuccess: () => setCreateOpen(false) },
-    )
-  }
+    );
+  };
 
   const updateProject = (event: FormEvent) => {
-    event.preventDefault()
-    const name = projectEditName.trim()
-    if (!name) return
+    event.preventDefault();
+    const name = projectEditName.trim();
+    if (!name) return;
 
     updateProjectMutation.mutate(
       { projectId, name },
       {
         onSuccess: () => {
-          setProjectEditOpen(false)
+          setProjectEditOpen(false);
         },
       },
-    )
-  }
+    );
+  };
 
   const deleteProject = () => {
     deleteProjectMutation.mutate(projectId, {
       onSuccess: () => {
-        setProjectDeleteOpen(false)
+        setProjectDeleteOpen(false);
         if (workspaceId) {
-          router.push(`/workspace/${workspaceId}`)
+          router.push(`/workspace/${workspaceId}`);
         } else {
-          router.push("/dashboard")
+          router.push("/dashboard");
         }
       },
-    })
-  }
+    });
+  };
 
   return {
     project: projectQuery.data,
@@ -194,5 +217,5 @@ export function useProjectPage(projectId: string) {
       deleteTask,
       openTaskDetail: openTaskDetailPanel,
     },
-  }
+  };
 }

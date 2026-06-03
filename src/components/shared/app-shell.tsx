@@ -1,20 +1,25 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Sidebar from "./sidebar"
-import { useUIStore } from "@/stores/ui-store"
-import { cn } from "@/lib/utils"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import { Menu, Layers } from "lucide-react"
+import { Layers, Menu } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { useUIStore } from "@/stores/ui-store";
+import Sidebar from "./sidebar";
 
 interface AppShellProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function AppShell({ children }: AppShellProps) {
-  const { sidebarOpen } = useUIStore()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const { sidebarOpen } = useUIStore();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground transition-colors duration-300">
@@ -31,13 +36,20 @@ export default function AppShell({ children }: AppShellProps) {
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger
                 render={
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-accent" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-accent"
+                  />
                 }
               >
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-72 bg-sidebar border-r border-sidebar-border text-sidebar-foreground">
+              <SheetContent
+                side="left"
+                className="p-0 w-72 bg-sidebar border-r border-sidebar-border text-sidebar-foreground"
+              >
                 <SheetHeader className="p-4 border-b border-sidebar-border">
                   <SheetTitle className="text-foreground flex items-center gap-2">
                     <Layers className="h-5 w-5 text-primary" />
@@ -64,5 +76,5 @@ export default function AppShell({ children }: AppShellProps) {
         </main>
       </div>
     </div>
-  )
+  );
 }

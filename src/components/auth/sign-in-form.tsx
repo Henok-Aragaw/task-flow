@@ -1,49 +1,56 @@
-"use client"
+"use client";
 
-import { useState, useTransition } from "react"
-import Link from "next/link"
-import { signInAction } from "@/features/auth/actions"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
-import { toast } from "sonner"
-import { LogIn, Mail, Lock, Loader2, AlertCircle } from "lucide-react"
-import { signInSchema, validateForm } from "@/lib/schemas"
+import { AlertCircle, Loader2, Lock, LogIn, Mail } from "lucide-react";
+import Link from "next/link";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { signInAction } from "@/features/auth/actions";
+import { signInSchema, validateForm } from "@/lib/schemas";
 
 export function SignInForm() {
-  const [isPending, startTransition] = useTransition()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [isPending, startTransition] = useTransition();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setFieldErrors({})
+    e.preventDefault();
+    setFieldErrors({});
 
     // Validate form data with Zod
-    const validation = validateForm(signInSchema, { email, password })
+    const validation = validateForm(signInSchema, { email, password });
     if (!validation.success) {
-      setFieldErrors(validation.errors || {})
+      setFieldErrors(validation.errors || {});
       if (validation.errors?._error) {
-        toast.error(validation.errors._error)
+        toast.error(validation.errors._error);
       }
-      return
+      return;
     }
 
     startTransition(async () => {
-      const formData = new FormData()
-      formData.append("email", email)
-      formData.append("password", password)
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
 
-      const result = await signInAction(formData)
+      const result = await signInAction(formData);
       if (result?.error) {
-        toast.error(result.error)
+        toast.error(result.error);
       } else {
-        toast.success("Welcome back! Redirecting to dashboard...")
-        window.location.href = "/dashboard"
+        toast.success("Welcome back! Redirecting to dashboard...");
+        window.location.href = "/dashboard";
       }
-    })
-  }
+    });
+  };
 
   return (
     <Card className="w-full max-w-md border-border bg-card shadow-xl relative overflow-hidden rounded-2xl">
@@ -51,7 +58,9 @@ export function SignInForm() {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20 mb-2">
           <LogIn className="h-6 w-6" />
         </div>
-        <CardTitle className="text-3xl font-extrabold tracking-tight text-foreground">Welcome back</CardTitle>
+        <CardTitle className="text-3xl font-extrabold tracking-tight text-foreground">
+          Welcome back
+        </CardTitle>
         <CardDescription className="text-muted-foreground">
           Sign in to access your task dashboard
         </CardDescription>
@@ -60,7 +69,10 @@ export function SignInForm() {
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-foreground" htmlFor="email">
+            <label
+              className="text-sm font-semibold text-foreground"
+              htmlFor="email"
+            >
               Email Address
             </label>
             <div className="relative">
@@ -72,8 +84,9 @@ export function SignInForm() {
                 className={`pl-10 h-11 bg-background border-border text-foreground placeholder-muted-foreground focus-visible:border-primary/50 focus-visible:ring-primary/25 rounded-xl transition-all ${fieldErrors.email ? "border-red-500 focus-visible:border-red-500" : ""}`}
                 value={email}
                 onChange={(e) => {
-                  setEmail(e.target.value)
-                  if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: "" })
+                  setEmail(e.target.value);
+                  if (fieldErrors.email)
+                    setFieldErrors({ ...fieldErrors, email: "" });
                 }}
                 disabled={isPending}
                 required
@@ -88,7 +101,10 @@ export function SignInForm() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-foreground" htmlFor="password">
+            <label
+              className="text-sm font-semibold text-foreground"
+              htmlFor="password"
+            >
               Password
             </label>
             <div className="relative">
@@ -100,8 +116,9 @@ export function SignInForm() {
                 className={`pl-10 h-11 bg-background border-border text-foreground placeholder-muted-foreground focus-visible:border-primary/50 focus-visible:ring-primary/25 rounded-xl transition-all ${fieldErrors.password ? "border-red-500 focus-visible:border-red-500" : ""}`}
                 value={password}
                 onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: "" })
+                  setPassword(e.target.value);
+                  if (fieldErrors.password)
+                    setFieldErrors({ ...fieldErrors, password: "" });
                 }}
                 disabled={isPending}
                 required
@@ -134,12 +151,15 @@ export function SignInForm() {
 
           <p className="text-sm text-muted-foreground text-center">
             Don&apos;t have an account?{" "}
-            <Link href="/sign-up" className="text-primary font-semibold hover:underline hover:text-primary/90">
+            <Link
+              href="/sign-up"
+              className="text-primary font-semibold hover:underline hover:text-primary/90"
+            >
               Sign Up
             </Link>
           </p>
         </CardFooter>
       </form>
     </Card>
-  )
+  );
 }

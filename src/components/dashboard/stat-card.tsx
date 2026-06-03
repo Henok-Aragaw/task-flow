@@ -1,15 +1,18 @@
-import { LucideIcon } from "lucide-react"
-import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import type { LucideIcon } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 interface StatCardProps {
-  label: string
-  value: number
-  description: string
-  icon: LucideIcon
-  accentColor: string // e.g. "amber", "indigo", "emerald"
+  label: string;
+  value: number;
+  description: string;
+  icon: LucideIcon;
+  accentColor: string; // e.g. "amber", "indigo", "emerald"
 }
 
-const colorMap: Record<string, { bar: string; bg: string; text: string; hoverBorder: string }> = {
+const colorMap: Record<
+  string,
+  { bar: string; bg: string; text: string; hoverBorder: string }
+> = {
   amber: {
     bar: "bg-amber-500",
     bg: "bg-amber-500/10",
@@ -28,10 +31,16 @@ const colorMap: Record<string, { bar: string; bg: string; text: string; hoverBor
     text: "text-emerald-600 dark:text-emerald-400",
     hoverBorder: "hover:border-emerald-500/50",
   },
-}
+};
 
-export default function StatCard({ label, value, description, icon: Icon, accentColor }: StatCardProps) {
-  const colors = colorMap[accentColor] ?? colorMap.amber
+export default function StatCard({
+  label,
+  value,
+  description,
+  icon: Icon,
+  accentColor,
+}: StatCardProps) {
+  const colors = colorMap[accentColor] ?? colorMap.amber;
 
   return (
     <Card
@@ -39,7 +48,9 @@ export default function StatCard({ label, value, description, icon: Icon, accent
     >
       <div className={`absolute top-0 left-0 w-full h-1 ${colors.bar}`} />
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <span className="text-sm font-semibold text-muted-foreground">{label}</span>
+        <span className="text-sm font-semibold text-muted-foreground">
+          {label}
+        </span>
         <div className={`p-2 rounded-lg ${colors.bg} ${colors.text}`}>
           <Icon className="h-5 w-5" />
         </div>
@@ -49,5 +60,5 @@ export default function StatCard({ label, value, description, icon: Icon, accent
         <p className="text-xs text-muted-foreground mt-1">{description}</p>
       </CardContent>
     </Card>
-  )
+  );
 }

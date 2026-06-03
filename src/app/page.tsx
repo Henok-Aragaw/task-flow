@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
 import HeroSection from "@/components/ui/hero-section";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -15,4 +15,3 @@ export default async function LandingPage() {
     </div>
   );
 }
-

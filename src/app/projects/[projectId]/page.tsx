@@ -1,13 +1,13 @@
-import ProjectClient from "./project-client"
+import ProjectClient from "./project-client";
 
 interface ProjectPageProps {
   params: Promise<{
-    projectId: string
-  }>
+    projectId: string;
+  }>;
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
-  const { projectId } = await params
+  const { projectId } = await params;
 
-  return <ProjectClient projectId={projectId} />
+  return <ProjectClient projectId={projectId} />;
 }

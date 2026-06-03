@@ -1,15 +1,25 @@
-import Link from "next/link"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { Database } from "@/types/database.types"
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import type { Database } from "@/types/database.types";
 
 interface ProjectCardProps {
-  project: Database["public"]["Tables"]["projects"]["Row"]
-  doneCount: number
-  totalCount: number
+  project: Database["public"]["Tables"]["projects"]["Row"];
+  doneCount: number;
+  totalCount: number;
 }
 
-export default function ProjectCard({ project, doneCount, totalCount }: ProjectCardProps) {
-  const pct = totalCount > 0 ? (doneCount / totalCount) * 100 : 0
+export default function ProjectCard({
+  project,
+  doneCount,
+  totalCount,
+}: ProjectCardProps) {
+  const pct = totalCount > 0 ? (doneCount / totalCount) * 100 : 0;
 
   return (
     <Link href={`/projects/${project.id}`} className="block group">
@@ -40,5 +50,5 @@ export default function ProjectCard({ project, doneCount, totalCount }: ProjectC
         </CardContent>
       </Card>
     </Link>
-  )
+  );
 }

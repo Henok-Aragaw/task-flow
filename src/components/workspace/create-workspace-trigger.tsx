@@ -1,63 +1,74 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { createClient } from "@/lib/supabase/client"
-import { toast } from "sonner"
-import { Plus, Loader2, AlertCircle } from "lucide-react"
-import { createWorkspaceSchema, validateForm } from "@/lib/schemas"
+import { AlertCircle, Loader2, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { createWorkspaceSchema, validateForm } from "@/lib/schemas";
+import { createClient } from "@/lib/supabase/client";
 
 export default function CreateWorkspaceTrigger() {
-  const router = useRouter()
-  const supabase = createClient()
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [fieldError, setFieldError] = useState<string | null>(null)
+  const router = useRouter();
+  const supabase = createClient();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [fieldError, setFieldError] = useState<string | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setFieldError(null)
+    e.preventDefault();
+    setFieldError(null);
 
     // Validate with Zod
-    const validation = validateForm(createWorkspaceSchema, { name })
+    const validation = validateForm(createWorkspaceSchema, { name });
     if (!validation.success) {
-      setFieldError(validation.errors?.name || "Validation failed")
-      return
+      setFieldError(validation.errors?.name || "Validation failed");
+      return;
     }
 
-    if (loading) return
+    if (loading) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       // Call RPC function to atomically create workspace and membership (bypassing RLS issues)
-      const { data: ws, error: wsErr } = await supabase.rpc("create_workspace", {
-        workspace_name: validation.data!.name,
-      })
+      const { data: ws, error: wsErr } = await supabase.rpc(
+        "create_workspace",
+        {
+          workspace_name: validation.data?.name as string,
+        },
+      );
 
-      if (wsErr) throw new Error(wsErr.message)
-      if (!ws) throw new Error("Workspace was not returned")
+      if (wsErr) throw new Error(wsErr.message);
+      if (!ws) throw new Error("Workspace was not returned");
 
-      toast.success("Workspace created successfully!")
-      setName("")
-      setOpen(false)
-      
+      toast.success("Workspace created successfully!");
+      setName("");
+      setOpen(false);
+
       // Refresh the page data on the server and route to the new workspace dashboard
-      router.push(`/dashboard?workspaceId=${ws.id}`)
-      router.refresh()
+      router.push(`/dashboard?workspaceId=${ws.id}`);
+      router.refresh();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Unknown error"
-      toast.error(`Failed to create workspace: ${msg}`)
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error(`Failed to create workspace: ${msg}`);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <>
@@ -77,14 +88,16 @@ export default function CreateWorkspaceTrigger() {
           <form onSubmit={handleCreate}>
             <div className="py-4 space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Workspace Name</label>
+                <label className="text-sm font-semibold text-foreground">
+                  Workspace Name
+                </label>
                 <Input
                   className={`bg-background border-border text-foreground focus-visible:ring-primary/25 ${fieldError ? "border-red-500 focus-visible:border-red-500" : ""}`}
                   placeholder="e.g. Acme Corporation"
                   value={name}
                   onChange={(e) => {
-                    setName(e.target.value)
-                    if (fieldError) setFieldError(null)
+                    setName(e.target.value);
+                    if (fieldError) setFieldError(null);
                   }}
                   disabled={loading}
                   required
@@ -107,7 +120,11 @@ export default function CreateWorkspaceTrigger() {
               >
                 Cancel
               </Button>
-              <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
+              <Button
+                type="submit"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -122,5 +139,5 @@ export default function CreateWorkspaceTrigger() {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

@@ -1,16 +1,26 @@
-"use client"
+"use client";
 
-import { Loader2, Mail } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import type { useWorkspacePage } from "../hooks/use-workspace-page"
+import { Loader2, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import type { useWorkspacePage } from "../hooks/use-workspace-page";
 
-type WorkspacePageModel = ReturnType<typeof useWorkspacePage>
+type WorkspacePageModel = ReturnType<typeof useWorkspacePage>;
 
 export function CreateProjectDialog({ model }: { model: WorkspacePageModel }) {
   return (
-    <Dialog open={model.projectDialog.open} onOpenChange={model.projectDialog.setOpen}>
+    <Dialog
+      open={model.projectDialog.open}
+      onOpenChange={model.projectDialog.setOpen}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create Project</DialogTitle>
@@ -18,12 +28,16 @@ export function CreateProjectDialog({ model }: { model: WorkspacePageModel }) {
         <form onSubmit={model.projectDialog.submit}>
           <div className="py-4 space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">Project Name</label>
+              <label className="text-sm font-semibold text-foreground">
+                Project Name
+              </label>
               <Input
                 className="bg-background border-border text-foreground focus-visible:ring-primary/25"
                 placeholder="e.g. Website Overhaul"
                 value={model.projectDialog.name}
-                onChange={(event) => model.projectDialog.setName(event.target.value)}
+                onChange={(event) =>
+                  model.projectDialog.setName(event.target.value)
+                }
                 required
                 disabled={model.createProjectMutation.isPending}
               />
@@ -57,12 +71,15 @@ export function CreateProjectDialog({ model }: { model: WorkspacePageModel }) {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 export function InviteMemberDialog({ model }: { model: WorkspacePageModel }) {
   return (
-    <Dialog open={model.inviteDialog.open} onOpenChange={model.inviteDialog.setOpen}>
+    <Dialog
+      open={model.inviteDialog.open}
+      onOpenChange={model.inviteDialog.setOpen}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Invite Workspace Member</DialogTitle>
@@ -70,7 +87,9 @@ export function InviteMemberDialog({ model }: { model: WorkspacePageModel }) {
         <form onSubmit={model.inviteDialog.submit}>
           <div className="py-4 space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">User Email Address</label>
+              <label className="text-sm font-semibold text-foreground">
+                User Email Address
+              </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -78,13 +97,16 @@ export function InviteMemberDialog({ model }: { model: WorkspacePageModel }) {
                   placeholder="name@example.com"
                   type="email"
                   value={model.inviteDialog.email}
-                  onChange={(event) => model.inviteDialog.setEmail(event.target.value)}
+                  onChange={(event) =>
+                    model.inviteDialog.setEmail(event.target.value)
+                  }
                   required
                   disabled={model.inviteDialog.isSubmitting}
                 />
               </div>
               <span className="text-xs text-muted-foreground block leading-normal mt-1">
-                Note: The user must have already signed up for an account in TaskFlow to be added to this workspace.
+                Note: The user must have already signed up for an account in
+                TaskFlow to be added to this workspace.
               </span>
             </div>
           </div>
@@ -116,12 +138,19 @@ export function InviteMemberDialog({ model }: { model: WorkspacePageModel }) {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-export function RenameWorkspaceDialog({ model }: { model: WorkspacePageModel }) {
+export function RenameWorkspaceDialog({
+  model,
+}: {
+  model: WorkspacePageModel;
+}) {
   return (
-    <Dialog open={model.editDialog.open} onOpenChange={model.editDialog.setOpen}>
+    <Dialog
+      open={model.editDialog.open}
+      onOpenChange={model.editDialog.setOpen}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Rename Workspace</DialogTitle>
@@ -129,12 +158,16 @@ export function RenameWorkspaceDialog({ model }: { model: WorkspacePageModel }) 
         <form onSubmit={model.editDialog.submit}>
           <div className="py-4 space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">Workspace Name</label>
+              <label className="text-sm font-semibold text-foreground">
+                Workspace Name
+              </label>
               <Input
                 className="bg-background border-border text-foreground focus-visible:ring-primary/25"
                 placeholder="e.g. Acme Corporation"
                 value={model.editDialog.name}
-                onChange={(event) => model.editDialog.setName(event.target.value)}
+                onChange={(event) =>
+                  model.editDialog.setName(event.target.value)
+                }
                 required
                 disabled={model.editDialog.isPending}
               />
@@ -168,17 +201,25 @@ export function RenameWorkspaceDialog({ model }: { model: WorkspacePageModel }) 
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
-export function ConfirmDeleteWorkspaceDialog({ model }: { model: WorkspacePageModel }) {
+export function ConfirmDeleteWorkspaceDialog({
+  model,
+}: {
+  model: WorkspacePageModel;
+}) {
   return (
-    <Dialog open={model.deleteDialog.open} onOpenChange={model.deleteDialog.setOpen}>
+    <Dialog
+      open={model.deleteDialog.open}
+      onOpenChange={model.deleteDialog.setOpen}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete Workspace?</DialogTitle>
           <DialogDescription>
-            This action is permanent and cannot be undone. It will delete all projects, members, and tasks associated with this workspace.
+            This action is permanent and cannot be undone. It will delete all
+            projects, members, and tasks associated with this workspace.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="space-x-2">
@@ -207,5 +248,5 @@ export function ConfirmDeleteWorkspaceDialog({ model }: { model: WorkspacePageMo
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

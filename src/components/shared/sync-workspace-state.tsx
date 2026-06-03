@@ -1,20 +1,22 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { useUIStore } from "@/stores/ui-store"
+import { useEffect } from "react";
+import { useUIStore } from "@/stores/ui-store";
 
 interface SyncWorkspaceStateProps {
-  workspaceId: string | null
+  workspaceId: string | null;
 }
 
-export default function SyncWorkspaceState({ workspaceId }: SyncWorkspaceStateProps) {
-  const { setActiveWorkspaceId } = useUIStore()
+export default function SyncWorkspaceState({
+  workspaceId,
+}: SyncWorkspaceStateProps) {
+  const { setActiveWorkspaceId } = useUIStore();
 
   useEffect(() => {
     if (workspaceId) {
-      setActiveWorkspaceId(workspaceId)
+      setActiveWorkspaceId(workspaceId);
     }
-  }, [workspaceId, setActiveWorkspaceId])
+  }, [workspaceId, setActiveWorkspaceId]);
 
-  return null
+  return null;
 }
