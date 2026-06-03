@@ -1,19 +1,24 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Layers} from 'lucide-react';
+import { Layers } from "lucide-react";
+import Link from "next/link";
 
 interface HeroSectionProps {
   isAuthenticated?: boolean;
 }
 
-export default function HeroSection({ isAuthenticated = false }: HeroSectionProps) {
+export default function HeroSection({
+  isAuthenticated = false,
+}: HeroSectionProps) {
   return (
     <section className="font-poppins relative w-full bg-linear-to-b from-primary via-primary/30 to-background text-sm pb-44 text-foreground overflow-hidden min-h-[90vh] flex flex-col justify-between">
-      
       {/* Header Navigation: Logo + Text on Left, Sign In/Dashboard on Right */}
       <nav className="relative z-10 flex items-center justify-between p-4 md:px-16 lg:px-24 xl:px-32 md:py-6 w-full">
-        <Link href="/" aria-label="TaskFlow home" className="flex items-center gap-2.5 group">
+        <Link
+          href="/"
+          aria-label="TaskFlow home"
+          className="flex items-center gap-2.5 group"
+        >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-primary shadow-sm group-hover:scale-105 transition-transform duration-200">
             <Layers className="h-5 w-5" />
           </div>

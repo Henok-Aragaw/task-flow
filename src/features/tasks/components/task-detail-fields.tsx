@@ -1,19 +1,49 @@
-"use client"
+"use client";
 
-import { format } from "date-fns"
-import { AlignLeft, CalendarIcon, CheckCircle, Clock, Edit2, User, AlertCircle } from "lucide-react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
-import type { ProfileRow, useTaskDetailPanel } from "../hooks/use-task-detail-panel"
-import { updateTaskTitleSchema, updateTaskDescriptionSchema, validateForm } from "@/lib/schemas"
-import { EditActions, InlineField, TextInputEditor, isTaskStatus } from "./task-field-base"
+import { format } from "date-fns";
+import {
+  AlertCircle,
+  AlignLeft,
+  CalendarIcon,
+  CheckCircle,
+  Clock,
+  Edit2,
+  User,
+} from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  updateTaskDescriptionSchema,
+  updateTaskTitleSchema,
+  validateForm,
+} from "@/lib/schemas";
+import { cn } from "@/lib/utils";
+import type {
+  ProfileRow,
+  useTaskDetailPanel,
+} from "../hooks/use-task-detail-panel";
+import {
+  EditActions,
+  InlineField,
+  isTaskStatus,
+  TextInputEditor,
+} from "./task-field-base";
 
-type TaskDetailModel = ReturnType<typeof useTaskDetailPanel>
+type TaskDetailModel = ReturnType<typeof useTaskDetailPanel>;
 
 export function TitleField({ model }: { model: TaskDetailModel }) {
   return (
@@ -38,7 +68,7 @@ export function TitleField({ model }: { model: TaskDetailModel }) {
         />
       }
     />
-  )
+  );
 }
 
 export function StatusField({ model }: { model: TaskDetailModel }) {
@@ -60,7 +90,7 @@ export function StatusField({ model }: { model: TaskDetailModel }) {
           <Select
             value={model.values.status}
             onValueChange={(value) => {
-              if (isTaskStatus(value)) model.values.setStatus(value)
+              if (isTaskStatus(value)) model.values.setStatus(value);
             }}
           >
             <SelectTrigger className="bg-background border-border text-foreground flex-1">
@@ -72,15 +102,21 @@ export function StatusField({ model }: { model: TaskDetailModel }) {
               <SelectItem value="done">Completed</SelectItem>
             </SelectContent>
           </Select>
-          <EditActions onSave={() => model.saveField("status")} onCancel={() => model.cancelField("status")} />
+          <EditActions
+            onSave={() => model.saveField("status")}
+            onCancel={() => model.cancelField("status")}
+          />
         </div>
       }
     />
-  )
+  );
 }
 
 export function AssigneeField({ model }: { model: TaskDetailModel }) {
-  const selectedAssigneeLabel = getSelectedAssigneeLabel(model.values.assignee, model.members)
+  const selectedAssigneeLabel = getSelectedAssigneeLabel(
+    model.values.assignee,
+    model.members,
+  );
 
   return (
     <InlineField
@@ -90,46 +126,59 @@ export function AssigneeField({ model }: { model: TaskDetailModel }) {
       displayContent={
         <div className="flex items-center gap-2 min-w-0">
           <User className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span className="text-sm text-foreground truncate">{model.assigneeDisplay}</span>
+          <span className="text-sm text-foreground truncate">
+            {model.assigneeDisplay}
+          </span>
         </div>
       }
       editContent={
         <div className="flex items-center gap-2">
-          <Select value={model.values.assignee} onValueChange={(value) => model.values.setAssignee(value || "unassigned")}>
+          <Select
+            value={model.values.assignee}
+            onValueChange={(value) =>
+              model.values.setAssignee(value || "unassigned")
+            }
+          >
             <SelectTrigger className="bg-background border-border text-foreground flex-1">
               <SelectValue>{selectedAssigneeLabel}</SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-popover border-border text-popover-foreground">
               <SelectItem value="unassigned">Unassigned</SelectItem>
               {model.members?.map((member) => {
-                const profile = member.profiles as ProfileRow
+                const profile = member.profiles as ProfileRow;
                 return (
                   <SelectItem key={profile.id} value={profile.id}>
                     {profile.full_name || profile.email}
                   </SelectItem>
-                )
+                );
               })}
             </SelectContent>
           </Select>
-          <EditActions onSave={() => model.saveField("assignee_id")} onCancel={() => model.cancelField("assignee_id")} />
+          <EditActions
+            onSave={() => model.saveField("assignee_id")}
+            onCancel={() => model.cancelField("assignee_id")}
+          />
         </div>
       }
     />
-  )
+  );
 }
 
-function getSelectedAssigneeLabel(assignee: string, members: { profiles: unknown }[] | null | undefined) {
-  if (!assignee) return "Select Assignee"
-  if (assignee === "unassigned") return "Unassigned"
+function getSelectedAssigneeLabel(
+  assignee: string,
+  members: { profiles: unknown }[] | null | undefined,
+) {
+  if (!assignee) return "Select Assignee";
+  if (assignee === "unassigned") return "Unassigned";
 
   const member = members?.find((item) => {
-    const profile = item.profiles as ProfileRow
-    return profile?.id === assignee
-  })
+    const profile = item.profiles as ProfileRow;
+    return profile?.id === assignee;
+  });
 
-  const profile = member?.profiles as ProfileRow | undefined
+  const profile = member?.profiles as ProfileRow | undefined;
 
-  return profile?.full_name || profile?.email || assignee
+  return profile?.full_name || profile?.email || assignee;
 }
 
 export function DueDateField({ model }: { model: TaskDetailModel }) {
@@ -142,7 +191,9 @@ export function DueDateField({ model }: { model: TaskDetailModel }) {
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm text-foreground">
-            {model.task?.due_date ? format(new Date(model.task.due_date), "PPP") : "No due date"}
+            {model.task?.due_date
+              ? format(new Date(model.task.due_date), "PPP")
+              : "No due date"}
           </span>
         </div>
       }
@@ -161,7 +212,11 @@ export function DueDateField({ model }: { model: TaskDetailModel }) {
               }
             >
               <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-              {model.values.dueDate ? format(model.values.dueDate, "PPP") : <span>Pick a date</span>}
+              {model.values.dueDate ? (
+                format(model.values.dueDate, "PPP")
+              ) : (
+                <span>Pick a date</span>
+              )}
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 bg-popover border-border">
               <Calendar
@@ -172,39 +227,46 @@ export function DueDateField({ model }: { model: TaskDetailModel }) {
               />
             </PopoverContent>
           </Popover>
-          <EditActions onSave={() => model.saveField("due_date")} onCancel={() => model.cancelField("due_date")} />
+          <EditActions
+            onSave={() => model.saveField("due_date")}
+            onCancel={() => model.cancelField("due_date")}
+          />
         </div>
       }
     />
-  )
+  );
 }
 
 export function DescriptionField({ model }: { model: TaskDetailModel }) {
-  const isEditing = model.editField === "description"
-  const [error, setError] = useState<string | null>(null)
+  const isEditing = model.editField === "description";
+  const [error, setError] = useState<string | null>(null);
 
   const handleSave = () => {
-    setError(null)
-    
-    const validation = validateForm(updateTaskDescriptionSchema, { description: model.values.description })
+    setError(null);
+
+    const validation = validateForm(updateTaskDescriptionSchema, {
+      description: model.values.description,
+    });
     if (!validation.success) {
-      setError(validation.errors?.description || "Validation failed")
-      return
+      setError(validation.errors?.description || "Validation failed");
+      return;
     }
-    
-    model.saveField("description")
-  }
+
+    model.saveField("description");
+  };
 
   return (
     <div className="space-y-2">
-      <label className="text-xs font-semibold text-muted-foreground">Description</label>
+      <label className="text-xs font-semibold text-muted-foreground">
+        Description
+      </label>
       {isEditing ? (
         <div className="space-y-2">
           <Textarea
             value={model.values.description}
             onChange={(event) => {
-              model.values.setDescription(event.target.value)
-              if (error) setError(null)
+              model.values.setDescription(event.target.value);
+              if (error) setError(null);
             }}
             className={`bg-background border-border text-foreground min-h-[120px] focus-visible:ring-primary/25 ${error ? "border-red-500 focus-visible:border-red-500" : ""}`}
             placeholder="Enter task description details..."
@@ -252,5 +314,5 @@ export function DescriptionField({ model }: { model: TaskDetailModel }) {
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,20 +1,25 @@
-"use client"
+"use client";
 
-import { ChevronDown, Plus, UserPlus, Edit2, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
+import { ChevronDown, Edit2, Plus, Trash2, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
-import type { useWorkspacePage } from "../hooks/use-workspace-page"
-import { CreateProjectDialog, InviteMemberDialog, RenameWorkspaceDialog, ConfirmDeleteWorkspaceDialog } from "./workspace-dialogs"
-import { MembersSection, ProjectsSection } from "./workspace-sections"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { useWorkspacePage } from "../hooks/use-workspace-page";
+import {
+  ConfirmDeleteWorkspaceDialog,
+  CreateProjectDialog,
+  InviteMemberDialog,
+  RenameWorkspaceDialog,
+} from "./workspace-dialogs";
+import { MembersSection, ProjectsSection } from "./workspace-sections";
 
-type WorkspacePageModel = ReturnType<typeof useWorkspacePage>
+type WorkspacePageModel = ReturnType<typeof useWorkspacePage>;
 
 export function WorkspacePageView({ model }: { model: WorkspacePageModel }) {
   return (
@@ -26,14 +31,17 @@ export function WorkspacePageView({ model }: { model: WorkspacePageModel }) {
           isLoading={model.isProjectsLoading}
           onCreateClick={() => model.projectDialog.setOpen(true)}
         />
-        <MembersSection members={model.members} isLoading={model.isMembersLoading} />
+        <MembersSection
+          members={model.members}
+          isLoading={model.isMembersLoading}
+        />
       </div>
       <CreateProjectDialog model={model} />
       <InviteMemberDialog model={model} />
       <RenameWorkspaceDialog model={model} />
       <ConfirmDeleteWorkspaceDialog model={model} />
     </div>
-  )
+  );
 }
 
 function WorkspaceHeader({ model }: { model: WorkspacePageModel }) {
@@ -48,7 +56,8 @@ function WorkspaceHeader({ model }: { model: WorkspacePageModel }) {
           </h1>
         )}
         <p className="text-zinc-500 dark:text-zinc-400 mt-1">
-          Manage your workspace projects, add team members, and view dashboard progress.
+          Manage your workspace projects, add team members, and view dashboard
+          progress.
         </p>
       </div>
 
@@ -93,11 +102,19 @@ function WorkspaceHeader({ model }: { model: WorkspacePageModel }) {
       <div className="flex sm:hidden items-center shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button variant="outline" className="border-zinc-300 text-zinc-700 dark:border-zinc-800 dark:text-zinc-300" />}
+            render={
+              <Button
+                variant="outline"
+                className="border-zinc-300 text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
+              />
+            }
           >
             Actions <ChevronDown className="ml-2 h-4 w-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-48 bg-popover border-border text-popover-foreground" align="end">
+          <DropdownMenuContent
+            className="w-48 bg-popover border-border text-popover-foreground"
+            align="end"
+          >
             <DropdownMenuItem
               onClick={() => model.projectDialog.setOpen(true)}
               className="hover:bg-accent focus:bg-accent cursor-pointer flex items-center gap-2"
@@ -135,5 +152,5 @@ function WorkspaceHeader({ model }: { model: WorkspacePageModel }) {
         </DropdownMenu>
       </div>
     </div>
-  )
+  );
 }

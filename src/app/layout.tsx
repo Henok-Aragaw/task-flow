@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Outfit, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono, Outfit } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/shared/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import QueryProvider from "@/hooks/query-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/shared/theme-provider";
 
 const sansFont = Outfit({
   variable: "--font-sans",

@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { Check, Edit2, X, AlertCircle } from "lucide-react"
-import type { ReactNode } from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import type { TaskStatus } from "../hooks/use-task-detail-panel"
-import { validateForm } from "@/lib/schemas"
-import type { z } from "zod"
+import { AlertCircle, Check, Edit2, X } from "lucide-react";
+import type { ReactNode } from "react";
+import { useState } from "react";
+import type { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { validateForm } from "@/lib/schemas";
+import type { TaskStatus } from "../hooks/use-task-detail-panel";
 
 export function InlineField({
   label,
@@ -16,15 +16,17 @@ export function InlineField({
   editContent,
   onEdit,
 }: {
-  label: string
-  editing: boolean
-  displayContent: ReactNode
-  editContent: ReactNode
-  onEdit: () => void
+  label: string;
+  editing: boolean;
+  displayContent: ReactNode;
+  editContent: ReactNode;
+  onEdit: () => void;
 }) {
   return (
     <div className="space-y-2">
-      <label className="text-xs font-semibold text-muted-foreground">{label}</label>
+      <label className="text-xs font-semibold text-muted-foreground">
+        {label}
+      </label>
       {editing ? (
         editContent
       ) : (
@@ -41,20 +43,36 @@ export function InlineField({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export function EditActions({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) {
+export function EditActions({
+  onSave,
+  onCancel,
+}: {
+  onSave: () => void;
+  onCancel: () => void;
+}) {
   return (
     <>
-      <Button size="icon" variant="ghost" className="text-green-500 hover:bg-green-500/10" onClick={onSave}>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="text-green-500 hover:bg-green-500/10"
+        onClick={onSave}
+      >
         <Check className="h-4 w-4" />
       </Button>
-      <Button size="icon" variant="ghost" className="text-red-500 hover:bg-red-500/10" onClick={onCancel}>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="text-red-500 hover:bg-red-500/10"
+        onClick={onCancel}
+      >
         <X className="h-4 w-4" />
       </Button>
     </>
-  )
+  );
 }
 
 export function TextInputEditor({
@@ -66,29 +84,29 @@ export function TextInputEditor({
   validationSchema,
   fieldName = "value",
 }: {
-  value: string
-  onChange: (value: string) => void
-  placeholder: string
-  onSave: () => void
-  onCancel: () => void
-  validationSchema?: z.ZodSchema<Record<string, string>>
-  fieldName?: string
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  onSave: () => void;
+  onCancel: () => void;
+  validationSchema?: z.ZodSchema<Record<string, string>>;
+  fieldName?: string;
 }) {
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null);
 
   const handleSave = () => {
-    setError(null)
-    
+    setError(null);
+
     if (validationSchema) {
-      const validation = validateForm(validationSchema, { [fieldName]: value })
+      const validation = validateForm(validationSchema, { [fieldName]: value });
       if (!validation.success) {
-        setError(validation.errors?.[fieldName] || "Validation failed")
-        return
+        setError(validation.errors?.[fieldName] || "Validation failed");
+        return;
       }
     }
-    
-    onSave()
-  }
+
+    onSave();
+  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -96,8 +114,8 @@ export function TextInputEditor({
         <Input
           value={value}
           onChange={(event) => {
-            onChange(event.target.value)
-            if (error) setError(null)
+            onChange(event.target.value);
+            if (error) setError(null);
           }}
           className={`bg-background border-border text-foreground flex-1 focus-visible:ring-primary/25 ${error ? "border-red-500 focus-visible:border-red-500" : ""}`}
           placeholder={placeholder}
@@ -111,9 +129,9 @@ export function TextInputEditor({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export function isTaskStatus(value: string | null): value is TaskStatus {
-  return value === "todo" || value === "in_progress" || value === "done"
+  return value === "todo" || value === "in_progress" || value === "done";
 }

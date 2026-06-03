@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { createClient } from "@/lib/supabase/client"
-import { toast } from "sonner"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/client";
 
-const supabase = createClient()
+const supabase = createClient();
 
 export function useWorkspaces() {
   return useQuery({
@@ -11,37 +11,37 @@ export function useWorkspaces() {
       const { data, error } = await supabase
         .from("workspaces")
         .select("*")
-        .order("name")
+        .order("name");
 
-      if (error) throw new Error(error.message)
-      return data
+      if (error) throw new Error(error.message);
+      return data;
     },
-  })
+  });
 }
 
 export function useWorkspace(workspaceId: string | null) {
   return useQuery({
     queryKey: ["workspace", workspaceId],
     queryFn: async () => {
-      if (!workspaceId) return null
+      if (!workspaceId) return null;
       const { data, error } = await supabase
         .from("workspaces")
         .select("*")
         .eq("id", workspaceId)
-        .single()
+        .single();
 
-      if (error) throw new Error(error.message)
-      return data
+      if (error) throw new Error(error.message);
+      return data;
     },
     enabled: !!workspaceId,
-  })
+  });
 }
 
 export function useWorkspaceMembers(workspaceId: string | null) {
   return useQuery({
     queryKey: ["workspace-members", workspaceId],
     queryFn: async () => {
-      if (!workspaceId) return []
+      if (!workspaceId) return [];
       const { data, error } = await supabase
         .from("workspace_members")
         .select(`
@@ -49,59 +49,65 @@ export function useWorkspaceMembers(workspaceId: string | null) {
           user_id,
           profiles:profiles!workspace_members_user_id_fkey(id, email, full_name, avatar_url)
         `)
-        .eq("workspace_id", workspaceId)
+        .eq("workspace_id", workspaceId);
 
-      if (error) throw new Error(error.message)
-      return data
+      if (error) throw new Error(error.message);
+      return data;
     },
     enabled: !!workspaceId,
-  })
+  });
 }
 
 export function useUpdateWorkspace() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ workspaceId, name }: { workspaceId: string; name: string }) => {
+    mutationFn: async ({
+      workspaceId,
+      name,
+    }: {
+      workspaceId: string;
+      name: string;
+    }) => {
       const { data, error } = await supabase
         .from("workspaces")
         .update({ name })
         .eq("id", workspaceId)
         .select()
-        .single()
+        .single();
 
-      if (error) throw new Error(error.message)
-      return data
+      if (error) throw new Error(error.message);
+      return data;
     },
     onSuccess: (data) => {
-      toast.success("Workspace renamed successfully!")
-      queryClient.invalidateQueries({ queryKey: ["workspace", data.id] })
-      queryClient.invalidateQueries({ queryKey: ["workspaces"] })
+      toast.success("Workspace renamed successfully!");
+      queryClient.invalidateQueries({ queryKey: ["workspace", data.id] });
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
     },
     onError: (err) => {
-      toast.error(`Failed to rename workspace: ${err.message}`)
+      toast.error(`Failed to rename workspace: ${err.message}`);
     },
-  })
+  });
 }
 
 export function useDeleteWorkspace() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (workspaceId: string) => {
       const { error } = await supabase
         .from("workspaces")
         .delete()
-        .eq("id", workspaceId)
+        .eq("id", workspaceId);
 
-      if (error) throw new Error(error.message)
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      toast.success("Workspace deleted successfully!")
-      queryClient.invalidateQueries({ queryKey: ["workspaces"] })
+      toast.success("Workspace deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
     },
     onError: (err) => {
-      toast.error(`Failed to delete workspace: ${err.message}`)
+      toast.error(`Failed to delete workspace: ${err.message}`);
     },
-  })
+  });
 }

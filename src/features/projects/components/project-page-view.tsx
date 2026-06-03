@@ -1,41 +1,63 @@
-"use client"
+"use client";
 
-import { AlertTriangle, Folder, Plus, Edit2, Trash2, ChevronDown } from "lucide-react"
-import { useState } from "react"
-import TaskDetailPanel from "@/components/task/task-detail-panel"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import {
+  AlertTriangle,
+  ChevronDown,
+  Edit2,
+  Folder,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import { useState } from "react";
+import TaskDetailPanel from "@/components/task/task-detail-panel";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
-import type { useProjectPage } from "../hooks/use-project-page"
-import { ConfirmDeleteDialog, CreateTaskDialog, RenameProjectDialog, ConfirmDeleteProjectDialog } from "./project-dialogs"
-import { FilterToolbar } from "./project-filters"
-import { TasksEmptyState, TasksTable, TasksTableSkeleton } from "./project-tasks-table"
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { useProjectPage } from "../hooks/use-project-page";
+import {
+  ConfirmDeleteDialog,
+  ConfirmDeleteProjectDialog,
+  CreateTaskDialog,
+  RenameProjectDialog,
+} from "./project-dialogs";
+import { FilterToolbar } from "./project-filters";
+import {
+  TasksEmptyState,
+  TasksTable,
+  TasksTableSkeleton,
+} from "./project-tasks-table";
 
-type ProjectPageModel = ReturnType<typeof useProjectPage>
+type ProjectPageModel = ReturnType<typeof useProjectPage>;
 
 export function ProjectPageView({ model }: { model: ProjectPageModel }) {
-  const [taskIdToDelete, setTaskIdToDelete] = useState<string | null>(null)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [taskIdToDelete, setTaskIdToDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleRequestDeleteTask = (taskId: string) => {
-    setTaskIdToDelete(taskId)
-    setDeleteDialogOpen(true)
-  }
+    setTaskIdToDelete(taskId);
+    setDeleteDialogOpen(true);
+  };
 
   const handleConfirmDeleteTask = async () => {
-    if (!taskIdToDelete) return
+    if (!taskIdToDelete) return;
 
-    await model.actions.deleteTask(taskIdToDelete)
-    setDeleteDialogOpen(false)
-    setTaskIdToDelete(null)
-  }
+    await model.actions.deleteTask(taskIdToDelete);
+    setDeleteDialogOpen(false);
+    setTaskIdToDelete(null);
+  };
 
   return (
     <>
@@ -47,7 +69,9 @@ export function ProjectPageView({ model }: { model: ProjectPageModel }) {
         {model.isLoading ? (
           <TasksTableSkeleton />
         ) : !model.tasks || model.tasks.length === 0 ? (
-          <TasksEmptyState onCreateClick={() => model.createDialog.setOpen(true)} />
+          <TasksEmptyState
+            onCreateClick={() => model.createDialog.setOpen(true)}
+          />
         ) : (
           <TasksTable
             tasks={model.tasks}
@@ -67,7 +91,7 @@ export function ProjectPageView({ model }: { model: ProjectPageModel }) {
       <ConfirmDeleteProjectDialog model={model} />
       <TaskDetailPanel />
     </>
-  )
+  );
 }
 
 function ProjectHeader({ model }: { model: ProjectPageModel }) {
@@ -118,11 +142,19 @@ function ProjectHeader({ model }: { model: ProjectPageModel }) {
       <div className="flex sm:hidden items-center shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button variant="outline" className="border-zinc-300 text-zinc-700 dark:border-zinc-800 dark:text-zinc-300" />}
+            render={
+              <Button
+                variant="outline"
+                className="border-zinc-300 text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"
+              />
+            }
           >
             Actions <ChevronDown className="ml-2 h-4 w-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-48 bg-popover border-border text-popover-foreground" align="end">
+          <DropdownMenuContent
+            className="w-48 bg-popover border-border text-popover-foreground"
+            align="end"
+          >
             <DropdownMenuItem
               onClick={() => model.createDialog.setOpen(true)}
               className="hover:bg-accent focus:bg-accent cursor-pointer flex items-center gap-2"
@@ -149,11 +181,15 @@ function ProjectHeader({ model }: { model: ProjectPageModel }) {
         </DropdownMenu>
       </div>
     </div>
-  )
+  );
 }
 
-function OverdueBanner({ overdueTasks }: { overdueTasks: { task_title: string; assignee_name: string | null }[] }) {
-  if (overdueTasks.length === 0) return null
+function OverdueBanner({
+  overdueTasks,
+}: {
+  overdueTasks: { task_title: string; assignee_name: string | null }[];
+}) {
+  if (overdueTasks.length === 0) return null;
 
   return (
     <Card className="border-red-500/30 bg-red-500/5 text-red-700 dark:text-red-400 relative overflow-hidden">
@@ -161,7 +197,9 @@ function OverdueBanner({ overdueTasks }: { overdueTasks: { task_title: string; a
       <CardHeader className="flex flex-row items-start gap-3 pb-3 pt-4">
         <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
         <div className="space-y-1">
-          <CardTitle className="text-sm font-bold">Overdue Tasks Detected ({overdueTasks.length})</CardTitle>
+          <CardTitle className="text-sm font-bold">
+            Overdue Tasks Detected ({overdueTasks.length})
+          </CardTitle>
           <CardDescription className="text-xs text-red-600/80 dark:text-red-400/80 leading-normal">
             The following tasks have past due dates and remain incomplete:
           </CardDescription>
@@ -170,13 +208,19 @@ function OverdueBanner({ overdueTasks }: { overdueTasks: { task_title: string; a
       <CardContent className="pb-4">
         <ul className="text-xs space-y-1 pl-8 list-disc font-medium">
           {overdueTasks.map((task) => (
-            <li key={`${task.task_title}-${task.assignee_name ?? "unassigned"}`}>
-              <span className="font-semibold text-red-800 dark:text-red-300">{task.task_title}</span>
-              {task.assignee_name ? ` (assigned to ${task.assignee_name})` : " (unassigned)"}
+            <li
+              key={`${task.task_title}-${task.assignee_name ?? "unassigned"}`}
+            >
+              <span className="font-semibold text-red-800 dark:text-red-300">
+                {task.task_title}
+              </span>
+              {task.assignee_name
+                ? ` (assigned to ${task.assignee_name})`
+                : " (unassigned)"}
             </li>
           ))}
         </ul>
       </CardContent>
     </Card>
-  )
+  );
 }
