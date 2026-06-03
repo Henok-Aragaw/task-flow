@@ -46,8 +46,6 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/sign-in") ||
     pathname.startsWith("/sign-up")
 
-  const isRoot = pathname === "/"
-
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone()
     url.pathname = "/sign-in"
@@ -57,12 +55,6 @@ export async function updateSession(request: NextRequest) {
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone()
     url.pathname = "/dashboard"
-    return NextResponse.redirect(url)
-  }
-
-  if (isRoot) {
-    const url = request.nextUrl.clone()
-    url.pathname = user ? "/dashboard" : "/sign-in"
     return NextResponse.redirect(url)
   }
 

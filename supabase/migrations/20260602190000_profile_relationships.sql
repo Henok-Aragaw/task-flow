@@ -1,5 +1,3 @@
--- Expose profile relationships to PostgREST without resetting app data.
--- Run this on existing databases instead of rerunning the destructive schema.sql.
 
 insert into public.profiles (id, email, full_name, avatar_url)
 select
@@ -13,14 +11,12 @@ where not exists (
 )
 on conflict (id) do nothing;
 
--- If old seed/demo data left memberships for auth users that do not exist in
--- this Supabase project, those rows can never satisfy the new public FK.
 delete from public.workspace_members wm
 where not exists (
   select 1 from public.profiles p where p.id = wm.user_id
 );
 
--- Keep the tasks, but clear impossible assignees before changing the FK.
+
 update public.tasks t
 set assignee_id = null
 where assignee_id is not null

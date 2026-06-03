@@ -34,6 +34,7 @@ import {
   ChevronRight,
   Settings,
   Layers,
+  Loader2,
 } from "lucide-react"
 
 export default function Sidebar() {
@@ -60,6 +61,7 @@ export default function Sidebar() {
   const [newWorkspaceName, setNewWorkspaceName] = useState("")
   const [userProfile, setUserProfile] = useState<{ email: string; name: string } | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   // Sync route param workspaceId with Zustand activeWorkspaceId
   useEffect(() => {
@@ -101,7 +103,9 @@ export default function Sidebar() {
   const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newWorkspaceName.trim()) return
+    if (loading) return
 
+    setLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("Not authenticated")
@@ -123,6 +127,8 @@ export default function Sidebar() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Unknown error"
       toast.error(`Failed to create workspace: ${msg}`)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -375,16 +381,24 @@ export default function Sidebar() {
                   placeholder="e.g. Acme Corporation"
                   value={newWorkspaceName}
                   onChange={(e) => setNewWorkspaceName(e.target.value)}
+                  disabled={loading}
                   required
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" className="border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => setCreateOpen(false)}>
+              <Button type="button" variant="outline" className="border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground" onClick={() => setCreateOpen(false)} disabled={loading}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Create
+              <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create"
+                )}
               </Button>
             </DialogFooter>
           </form>

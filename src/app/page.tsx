@@ -1,5 +1,19 @@
-import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server";
+import { LandingHeader } from "@/components/landing/landing-header";
+import { HeroSection } from "@/components/landing/hero-section";
 
-export default function RootPage() {
-  redirect("/dashboard")
+export default async function LandingPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return (
+    <div className="flex w-full flex-col">
+      <LandingHeader isAuthenticated={!!user} />
+      <main className="grow">
+        <HeroSection />
+      </main>
+    </div>
+  );
 }

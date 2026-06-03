@@ -63,3 +63,51 @@ export function useCreateProject(workspaceId: string | null) {
     },
   })
 }
+
+export function useUpdateProject(workspaceId: string | null) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ projectId, name }: { projectId: string; name: string }) => {
+      const { data, error } = await supabase
+        .from("projects")
+        .update({ name })
+        .eq("id", projectId)
+        .select()
+        .single()
+
+      if (error) throw new Error(error.message)
+      return data
+    },
+    onSuccess: (data) => {
+      toast.success("Project renamed successfully!")
+      queryClient.invalidateQueries({ queryKey: ["project", data.id] })
+      queryClient.invalidateQueries({ queryKey: ["projects", workspaceId] })
+    },
+    onError: (err) => {
+      toast.error(`Failed to rename project: ${err.message}`)
+    },
+  })
+}
+
+export function useDeleteProject(workspaceId: string | null) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (projectId: string) => {
+      const { error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", projectId)
+
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => {
+      toast.success("Project deleted successfully!")
+      queryClient.invalidateQueries({ queryKey: ["projects", workspaceId] })
+    },
+    onError: (err) => {
+      toast.error(`Failed to delete project: ${err.message}`)
+    },
+  })
+}

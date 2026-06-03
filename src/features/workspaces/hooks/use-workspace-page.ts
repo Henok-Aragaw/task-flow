@@ -1,24 +1,49 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useCreateProject, useProjects } from "@/features/projects/queries"
 import { createClient } from "@/lib/supabase/client"
-import { useWorkspace, useWorkspaceMembers } from "../queries"
+import { useWorkspace, useWorkspaceMembers, useUpdateWorkspace, useDeleteWorkspace } from "../queries"
 
 export function useWorkspacePage(workspaceId: string) {
+  const router = useRouter()
   const supabase = createClient()
   const workspaceQuery = useWorkspace(workspaceId)
   const projectsQuery = useProjects(workspaceId)
   const membersQuery = useWorkspaceMembers(workspaceId)
   const createProjectMutation = useCreateProject(workspaceId)
+  const updateWorkspaceMutation = useUpdateWorkspace()
+  const deleteWorkspaceMutation = useDeleteWorkspace()
 
   const [projectOpen, setProjectOpen] = useState(false)
   const [projectName, setProjectName] = useState("")
   const [inviteOpen, setInviteOpen] = useState(false)
   const [inviteEmail, setInviteEmail] = useState("")
   const [isInviting, setIsInviting] = useState(false)
+
+  const [editOpen, setEditOpen] = useState(false)
+  const [editName, setEditName] = useState("")
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setCurrentUserId(data.user.id)
+    })
+  }, [supabase])
+
+  useEffect(() => {
+    if (workspaceQuery.data?.name) {
+      setEditName(workspaceQuery.data.name)
+    }
+  }, [workspaceQuery.data?.name])
+
+  const isOwner = membersQuery.data?.some(
+    (member) => member.user_id === currentUserId && member.role === "owner"
+  ) ?? false
 
   const createProject = (event: FormEvent) => {
     event.preventDefault()
@@ -34,6 +59,30 @@ export function useWorkspacePage(workspaceId: string) {
         },
       },
     )
+  }
+
+  const updateWorkspace = (event: FormEvent) => {
+    event.preventDefault()
+    const name = editName.trim()
+    if (!name) return
+
+    updateWorkspaceMutation.mutate(
+      { workspaceId, name },
+      {
+        onSuccess: () => {
+          setEditOpen(false)
+        },
+      },
+    )
+  }
+
+  const deleteWorkspace = () => {
+    deleteWorkspaceMutation.mutate(workspaceId, {
+      onSuccess: () => {
+        setDeleteOpen(false)
+        router.push("/dashboard")
+      },
+    })
   }
 
   const inviteMember = async (event: FormEvent) => {
@@ -88,6 +137,7 @@ export function useWorkspacePage(workspaceId: string) {
     isLoading: workspaceQuery.isLoading || projectsQuery.isLoading || membersQuery.isLoading,
     isProjectsLoading: projectsQuery.isLoading,
     isMembersLoading: membersQuery.isLoading,
+    isOwner,
     createProjectMutation,
     projectDialog: {
       open: projectOpen,
@@ -103,6 +153,20 @@ export function useWorkspacePage(workspaceId: string) {
       setEmail: setInviteEmail,
       isSubmitting: isInviting,
       submit: inviteMember,
+    },
+    editDialog: {
+      open: editOpen,
+      setOpen: setEditOpen,
+      name: editName,
+      setName: setEditName,
+      submit: updateWorkspace,
+      isPending: updateWorkspaceMutation.isPending,
+    },
+    deleteDialog: {
+      open: deleteOpen,
+      setOpen: setDeleteOpen,
+      submit: deleteWorkspace,
+      isPending: deleteWorkspaceMutation.isPending,
     },
   }
 }
