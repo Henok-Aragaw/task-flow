@@ -1,10 +1,10 @@
 # TaskFlow — SaaS Task Management Platform
 
-A production-ready SaaS task and project collaboration platform built with Next.js 16, React 19, Supabase, and strict TypeScript.
+A production-ready task and project collaboration platform built with Next.js 16, React 19, Supabase, and strict TypeScript.
 
 ## 🚀 What this app delivers
 
-- Public landing page with animated hero section and auth-aware header.
+- Public landing page and auth-aware header.
 - Tenant-aware workspace isolation with per-user access control.
 - Workspace/project/task visibility enforced by Supabase Row Level Security (RLS).
 - Real-time task synchronization via Supabase subscriptions and client-side invalidation.
@@ -130,6 +130,7 @@ supabase/                         # Supabase config, migrations, and edge functi
 ### Route Protection
 
 The middleware (`src/lib/supabase/middleware.ts`) enforces:
+
 - `/dashboard`, `/workspace/*`, `/projects/*` → redirect to `/sign-in` if unauthenticated.
 - `/sign-in`, `/sign-up` → redirect to `/dashboard` if already authenticated.
 - `/` (landing page) → accessible to everyone; header adapts based on auth state.
