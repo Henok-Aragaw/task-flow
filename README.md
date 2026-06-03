@@ -31,13 +31,11 @@ src/
 ├── components/                   # Reusable UI components
 │   ├── ui/                       # Design primitives (shadcn/base-ui)
 │   │   ├── button.tsx            # Button with CVA variants
-│   │   ├── infinite-slider.tsx   # Framer Motion infinite slider
 │   │   ├── logo-cloud.tsx        # Logo cloud with infinite slider
+│   │   ├── hero-section.tsx      # Unified landing page hero section
+│   │   ├── demo.tsx              # Demo wrapper for hero-section
 │   │   ├── dialog.tsx, drawer.tsx, sheet.tsx ...
-│   │   └── ... (22 components)
-│   ├── landing/                  # Landing page components
-│   │   ├── hero-section.tsx      # Hero section with animated entry
-│   │   └── landing-header.tsx    # Auth-aware minimal header
+│   │   └── ... (23 components)
 │   ├── auth/                     # Auth forms and layout
 │   │   ├── auth-layout.tsx       # Shared auth page layout
 │   │   ├── sign-in-form.tsx      # Sign-in form (client component)
@@ -117,8 +115,7 @@ supabase/                         # Supabase config, migrations, and edge functi
 ### Landing Page
 
 - **`src/app/page.tsx`** is a **server component** that checks Supabase auth and renders the landing page.
-- **`src/components/landing/landing-header.tsx`** shows the company wordmark and a contextual button: "Sign In" for guests, "Dashboard" for authenticated users.
-- **`src/components/landing/hero-section.tsx`** renders the hero with animated entry transitions and a single "Get started" CTA.
+- **`src/components/ui/hero-section.tsx`** is the unified public landing page component. It renders the background grid, a top primary color radial glow, the page navigation header (including the TaskFlow logo and contextual auth button), and the main hero CTA section.
 
 ### Auth Architecture
 

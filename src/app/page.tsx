@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { LandingHeader } from "@/components/landing/landing-header";
-import { HeroSection } from "@/components/landing/hero-section";
+import HeroSection from "@/components/ui/hero-section";
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -10,10 +9,10 @@ export default async function LandingPage() {
 
   return (
     <div className="flex w-full flex-col">
-      <LandingHeader isAuthenticated={!!user} />
       <main className="grow">
-        <HeroSection />
+        <HeroSection isAuthenticated={!!user} />
       </main>
     </div>
   );
 }
+
