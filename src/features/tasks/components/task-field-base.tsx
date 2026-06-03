@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import type { TaskStatus } from "../hooks/use-task-detail-panel"
 import { validateForm } from "@/lib/schemas"
+import type { z } from "zod"
 
 export function InlineField({
   label,
@@ -70,7 +71,7 @@ export function TextInputEditor({
   placeholder: string
   onSave: () => void
   onCancel: () => void
-  validationSchema?: any
+  validationSchema?: z.ZodSchema<Record<string, string>>
   fieldName?: string
 }) {
   const [error, setError] = useState<string | null>(null)
