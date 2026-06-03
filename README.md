@@ -1,9 +1,10 @@
-# Premium SaaS Task Management Application
+# TaskFlow — SaaS Task Management Platform
 
 A production-ready SaaS task and project collaboration platform built with Next.js 16, React 19, Supabase, and strict TypeScript.
 
 ## 🚀 What this app delivers
 
+- Public landing page with animated hero section and auth-aware header.
 - Tenant-aware workspace isolation with per-user access control.
 - Workspace/project/task visibility enforced by Supabase Row Level Security (RLS).
 - Real-time task synchronization via Supabase subscriptions and client-side invalidation.
@@ -16,40 +17,108 @@ A production-ready SaaS task and project collaboration platform built with Next.
 
 ```text
 src/
-├── app/                      # Next.js App Router entrypoints
-│   ├── (auth)/               # Auth pages: sign-in, sign-up
-│   ├── dashboard/            # Workspace and project dashboard overview
-│   ├── projects/             # Project-level views and task clients
-│   ├── workspace/            # Workspace detail and membership UI
-│   ├── globals.css           # Global styles
-│   └── layout.tsx            # Root layout, providers, and metadata
-├── components/               # Reusable UI components
-│   ├── ui/                   # Design primitives and shadcn-based controls
-│   ├── auth/                 # Auth forms and layout (sign-in, sign-up)
-│   ├── workspace/            # Workspace selection and tabs
-│   ├── dashboard/            # Summary cards and dashboard widgets
-│   ├── task/                 # Task detail drawer and task UI components
-│   └── shared/               # Layout shell, sidebar, and shared UI patterns
-├── features/                 # Feature slices and data fetching logic
-│   ├── auth/                 # Auth actions and server-side logic
-│   ├── projects/             # Project queries and project page components
-│   ├── tasks/                # Task queries, task UI fields, and detail panel hooks
-│   └── workspaces/           # Workspace queries and page components
-├── hooks/                    # App-wide hook abstractions and query provider
-├── lib/                      # Shared utilities and Supabase client wrappers
-│   ├── supabase/             # Browser/server Supabase client setup
-│   └── utils.ts  
-└── schemas.ts            # Shared helper utilities
-├── stores/                   # Zustand UI store for client-side state
-├── types/                    # Generated database typings
-supabase/                     # Supabase config, migrations, and edge function
+├── app/                          # Next.js App Router entrypoints
+│   ├── page.tsx                  # Public landing page (server component)
+│   ├── layout.tsx                # Root layout, providers, and metadata
+│   ├── globals.css               # Global styles and theme tokens
+│   ├── (auth)/                   # Auth pages
+│   │   ├── sign-in/page.tsx      # Sign-in route
+│   │   └── sign-up/page.tsx      # Sign-up route
+│   ├── dashboard/                # Workspace and project dashboard overview
+│   ├── projects/                 # Project-level views and task clients
+│   └── workspace/                # Workspace detail and membership UI
+│
+├── components/                   # Reusable UI components
+│   ├── ui/                       # Design primitives (shadcn/base-ui)
+│   │   ├── button.tsx            # Button with CVA variants
+│   │   ├── infinite-slider.tsx   # Framer Motion infinite slider
+│   │   ├── logo-cloud.tsx        # Logo cloud with infinite slider
+│   │   ├── dialog.tsx, drawer.tsx, sheet.tsx ...
+│   │   └── ... (22 components)
+│   ├── landing/                  # Landing page components
+│   │   ├── hero-section.tsx      # Hero section with animated entry
+│   │   └── landing-header.tsx    # Auth-aware minimal header
+│   ├── auth/                     # Auth forms and layout
+│   │   ├── auth-layout.tsx       # Shared auth page layout
+│   │   ├── sign-in-form.tsx      # Sign-in form (client component)
+│   │   └── sign-up-form.tsx      # Sign-up form (client component)
+│   ├── dashboard/                # Dashboard widgets
+│   │   ├── project-card.tsx      # Project summary card
+│   │   ├── stat-card.tsx         # Statistics card
+│   │   └── workspace-tabs.tsx    # Workspace tab switcher
+│   ├── task/                     # Task UI components
+│   │   └── task-detail-panel.tsx  # Task detail drawer
+│   ├── workspace/                # Workspace components
+│   │   └── create-workspace-trigger.tsx
+│   └── shared/                   # Layout shell and shared patterns
+│       ├── app-shell.tsx         # Authenticated app layout shell
+│       ├── sidebar.tsx           # Navigation sidebar
+│       ├── sync-workspace-state.tsx
+│       └── theme-provider.tsx    # Dark/light theme provider
+│
+├── features/                     # Feature slices (queries, components, hooks)
+│   ├── auth/
+│   │   └── actions.ts            # Server-side auth actions
+│   ├── projects/
+│   │   ├── queries.ts            # Project data queries
+│   │   ├── components/
+│   │   │   ├── project-page-view.tsx
+│   │   │   ├── project-tasks-table.tsx
+│   │   │   ├── project-dialogs.tsx
+│   │   │   └── project-filters.tsx
+│   │   └── hooks/
+│   │       └── use-project-page.ts
+│   ├── tasks/
+│   │   ├── queries.ts            # Task data queries and mutations
+│   │   ├── components/
+│   │   │   ├── task-detail-fields.tsx
+│   │   │   └── task-field-base.tsx
+│   │   └── hooks/
+│   │       └── use-task-detail-panel.ts
+│   └── workspaces/
+│       ├── queries.ts            # Workspace data queries
+│       ├── components/
+│       │   ├── workspace-page-view.tsx
+│       │   ├── workspace-sections.tsx
+│       │   └── workspace-dialogs.tsx
+│       └── hooks/
+│           └── use-workspace-page.ts
+│
+├── hooks/
+│   └── query-provider.tsx        # TanStack Query provider wrapper
+│
+├── lib/                          # Shared utilities
+│   ├── utils.ts                  # cn() helper (clsx + tailwind-merge)
+│   ├── schemas.ts                # Zod validation schemas
+│   └── supabase/                 # Supabase client wrappers
+│       ├── client.ts             # Browser-side Supabase client
+│       ├── server.ts             # Server-side Supabase client
+│       └── middleware.ts         # Session refresh and route protection
+│
+├── stores/
+│   └── ui-store.ts               # Zustand store for UI state
+│
+├── types/
+│   └── database.types.ts         # Generated Supabase database typings
+│
+├── middleware.ts                  # Next.js middleware entry point
+│
+supabase/                         # Supabase config, migrations, and edge functions
 ├── config.toml
-├── functions/                # Supabase edge functions
+├── functions/
 │   ├── deno.json
 │   ├── import_map.json
-│   └── overdue-tasks/        # Overdue task reporting function
-└── migrations/               # Database migration files
+│   └── overdue-tasks/            # Overdue task reporting function
+└── migrations/
+    ├── 20260602190000_profile_relationships.sql
+    └── 20260603093000_workspace_project_policies.sql
 ```
+
+### Landing Page
+
+- **`src/app/page.tsx`** is a **server component** that checks Supabase auth and renders the landing page.
+- **`src/components/landing/landing-header.tsx`** shows the company wordmark and a contextual button: "Sign In" for guests, "Dashboard" for authenticated users.
+- **`src/components/landing/hero-section.tsx`** renders the hero with animated entry transitions and a single "Get started" CTA.
 
 ### Auth Architecture
 
@@ -58,11 +127,18 @@ supabase/                     # Supabase config, migrations, and edge function
 - **Auth layout** (`src/components/auth/auth-layout.tsx`) provides shared UI (background grid, centering) for both sign-in and sign-up pages.
 - **Auth actions** (`src/features/auth/actions.ts`) are server-side functions handling Supabase auth operations.
 
+### Route Protection
+
+The middleware (`src/lib/supabase/middleware.ts`) enforces:
+- `/dashboard`, `/workspace/*`, `/projects/*` → redirect to `/sign-in` if unauthenticated.
+- `/sign-in`, `/sign-up` → redirect to `/dashboard` if already authenticated.
+- `/` (landing page) → accessible to everyone; header adapts based on auth state.
+
 ---
 
 ## 🛠 Key technologies
 
-- Next.js 16
+- Next.js 16 (App Router, Turbopack)
 - React 19
 - TypeScript with `strict` mode enabled
 - Supabase auth, database, and edge functions
@@ -71,7 +147,9 @@ supabase/                     # Supabase config, migrations, and edge function
 - Zustand for UI state management only
 - Zod for validation and React Hook Form for form handling
 - Tailwind CSS v4 with Base UI / shadcn design primitives
+- Framer Motion for landing page animations
 - Sonner for toast notifications
+- Biome for linting and formatting
 
 ---
 
@@ -131,7 +209,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open `http://localhost:3000` to see the landing page.
 
 ---
 

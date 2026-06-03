@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
 
 const supabase = createClient()
 
@@ -54,5 +55,53 @@ export function useWorkspaceMembers(workspaceId: string | null) {
       return data
     },
     enabled: !!workspaceId,
+  })
+}
+
+export function useUpdateWorkspace() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ workspaceId, name }: { workspaceId: string; name: string }) => {
+      const { data, error } = await supabase
+        .from("workspaces")
+        .update({ name })
+        .eq("id", workspaceId)
+        .select()
+        .single()
+
+      if (error) throw new Error(error.message)
+      return data
+    },
+    onSuccess: (data) => {
+      toast.success("Workspace renamed successfully!")
+      queryClient.invalidateQueries({ queryKey: ["workspace", data.id] })
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] })
+    },
+    onError: (err) => {
+      toast.error(`Failed to rename workspace: ${err.message}`)
+    },
+  })
+}
+
+export function useDeleteWorkspace() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (workspaceId: string) => {
+      const { error } = await supabase
+        .from("workspaces")
+        .delete()
+        .eq("id", workspaceId)
+
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => {
+      toast.success("Workspace deleted successfully!")
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] })
+    },
+    onError: (err) => {
+      toast.error(`Failed to delete workspace: ${err.message}`)
+    },
   })
 }

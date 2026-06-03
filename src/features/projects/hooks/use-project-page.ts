@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import type { FormEvent } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { useProject } from "@/features/projects/queries"
+import { useProject, useUpdateProject, useDeleteProject } from "@/features/projects/queries"
 import { useCreateTask, useOverdueTasks, useTasks, useUpdateTaskStatus } from "@/features/tasks/queries"
 import { useWorkspaceMembers } from "@/features/workspaces/queries"
 import { createClient } from "@/lib/supabase/client"
@@ -39,13 +40,26 @@ export function useProjectPage(projectId: string) {
   )
 
   const projectQuery = useProject(projectId)
-  const membersQuery = useWorkspaceMembers(projectQuery.data?.workspace_id || null)
+  const workspaceId = projectQuery.data?.workspace_id || null
+  const membersQuery = useWorkspaceMembers(workspaceId)
   const tasksQuery = useTasks(projectId, filters)
   const overdueTasksQuery = useOverdueTasks(projectId)
   const updateStatusMutation = useUpdateTaskStatus(projectId, filters)
   const createTaskMutation = useCreateTask(projectId)
+  
+  const updateProjectMutation = useUpdateProject(workspaceId)
+  const deleteProjectMutation = useDeleteProject(workspaceId)
 
   const [createOpen, setCreateOpen] = useState(false)
+  const [projectEditOpen, setProjectEditOpen] = useState(false)
+  const [projectEditName, setProjectEditName] = useState("")
+  const [projectDeleteOpen, setProjectDeleteOpen] = useState(false)
+
+  useEffect(() => {
+    if (projectQuery.data?.name) {
+      setProjectEditName(projectQuery.data.name)
+    }
+  }, [projectQuery.data?.name])
 
   useEffect(() => {
     const channel = supabase
@@ -112,6 +126,34 @@ export function useProjectPage(projectId: string) {
     )
   }
 
+  const updateProject = (event: FormEvent) => {
+    event.preventDefault()
+    const name = projectEditName.trim()
+    if (!name) return
+
+    updateProjectMutation.mutate(
+      { projectId, name },
+      {
+        onSuccess: () => {
+          setProjectEditOpen(false)
+        },
+      },
+    )
+  }
+
+  const deleteProject = () => {
+    deleteProjectMutation.mutate(projectId, {
+      onSuccess: () => {
+        setProjectDeleteOpen(false)
+        if (workspaceId) {
+          router.push(`/workspace/${workspaceId}`)
+        } else {
+          router.push("/dashboard")
+        }
+      },
+    })
+  }
+
   return {
     project: projectQuery.data,
     members: membersQuery.data,
@@ -132,6 +174,20 @@ export function useProjectPage(projectId: string) {
       open: createOpen,
       setOpen: setCreateOpen,
       submit: createTask,
+    },
+    editDialog: {
+      open: projectEditOpen,
+      setOpen: setProjectEditOpen,
+      name: projectEditName,
+      setName: setProjectEditName,
+      submit: updateProject,
+      isPending: updateProjectMutation.isPending,
+    },
+    deleteDialog: {
+      open: projectDeleteOpen,
+      setOpen: setProjectDeleteOpen,
+      submit: deleteProject,
+      isPending: deleteProjectMutation.isPending,
     },
     actions: {
       updateStatus,

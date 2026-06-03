@@ -2,7 +2,7 @@
 create extension if not exists "uuid-ossp";
 create extension if not exists "pgcrypto";
 
--- Clean up existing objects if recreating
+
 drop trigger if exists on_auth_user_created on auth.users cascade;
 drop function if exists public.handle_new_user() cascade;
 drop function if exists public.is_workspace_member(uuid) cascade;
@@ -76,10 +76,6 @@ create table public.tasks (
 alter table public.tasks enable row level security;
 
 
--- ==================================================
--- SECURITY FUNCTIONS (Avoiding recursive RLS policies)
--- ==================================================
-
 -- Security definer function to check workspace membership
 create or replace function public.is_workspace_member(workspace_id uuid)
 returns boolean security definer set search_path = public as $$
@@ -119,10 +115,7 @@ begin
 end;
 $$ language plpgsql;
 
-
--- ==================================================
 -- ROW LEVEL SECURITY POLICIES
--- ==================================================
 
 -- PROFILES POLICIES
 create policy "Users can read profiles in the same workspaces"
@@ -154,7 +147,6 @@ create policy "Members can update workspace"
   on public.workspaces for update
   using (public.is_workspace_member(id));
 
--- Atomic workspace creation function (bypasses RLS via SECURITY DEFINER)
 -- Creates the workspace row AND owner membership in one transaction.
 create or replace function public.create_workspace(workspace_name text)
 returns public.workspaces
@@ -182,7 +174,6 @@ create policy "Owners can delete workspace"
   on public.workspaces for delete
   using (public.is_workspace_owner(id));
 
--- Atomic project creation function (bypasses RLS via SECURITY DEFINER)
 -- Creates the project row only if the caller is a workspace member.
 create or replace function public.create_project(project_name text, project_workspace_id uuid)
 returns public.projects
@@ -219,7 +210,7 @@ create policy "Members can view workspace membership"
 create policy "Users can insert their own owner membership"
   on public.workspace_members for insert
   with check (
-    -- The user is adding themselves
+
     auth.uid() = user_id
   );
 
@@ -264,9 +255,7 @@ create policy "Members can delete tasks"
   using (public.is_project_member(project_id));
 
 
--- ==================================================
 -- USER PROFILE TRIGGER SYNC
--- ==================================================
 
 -- Function to handle syncing user on creation and seeding default data
 create or replace function public.handle_new_user()
@@ -315,10 +304,7 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
-
--- ==================================================
 -- SEED DATA
--- ==================================================
 
 -- A. Create mock users in auth.users
 insert into auth.users (id, email, email_confirmed_at, raw_user_meta_data, created_at, updated_at, role, aud)
