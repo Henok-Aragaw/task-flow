@@ -1,8 +1,8 @@
-# TaskFlow — SaaS Task Management Platform
+# TaskFlow — Task Management Platform
 
 A production-ready task and project collaboration platform built with Next.js 16, React 19, Supabase, and strict TypeScript.
 
-## 🚀 What this app delivers
+## What this app delivers
 
 - Public landing page and auth-aware header.
 - Tenant-aware workspace isolation with per-user access control.
@@ -31,7 +31,6 @@ src/
 ├── components/                   # Reusable UI components
 │   ├── ui/                       # Design primitives (shadcn/base-ui)
 │   │   ├── button.tsx            # Button with CVA variants
-│   │   ├── logo-cloud.tsx        # Logo cloud with infinite slider
 │   │   ├── hero-section.tsx      # Unified landing page hero section
 │   │   ├── demo.tsx              # Demo wrapper for hero-section
 │   │   ├── dialog.tsx, drawer.tsx, sheet.tsx ...
@@ -56,7 +55,8 @@ src/
 │
 ├── features/                     # Feature slices (queries, components, hooks)
 │   ├── auth/
-│   │   └── actions.ts            # Server-side auth actions
+│   │   ├── actions.ts            # Server-side auth actions
+│   │   └── queries.ts            # Current user query hook (useCurrentUser)
 │   ├── projects/
 │   │   ├── queries.ts            # Project data queries
 │   │   ├── components/
@@ -151,7 +151,7 @@ The middleware (`src/lib/supabase/middleware.ts`) enforces:
 
 ---
 
-## 🗄️ Database and Supabase logic
+## Database and Supabase logic
 
 The database schema is defined in `schema.sql` and includes:
 
@@ -184,14 +184,14 @@ The schema seeds:
 
 ---
 
-## 🚧 Supabase edge function
+## Supabase edge function
 
 The overdue tasks notifier is implemented at `supabase/functions/overdue-tasks/index.ts`.
 It accepts `project_id` and returns overdue tasks with assignee metadata.
 
 ---
 
-## 🧪 Local development
+## Local development
 
 Create `.env.local` with your Supabase credentials:
 
@@ -211,7 +211,7 @@ Open `http://localhost:3000` to see the landing page.
 
 ---
 
-## ✅ Build and lint
+## Build and lint
 
 - `npm run build` — build the Next.js app
 - `npm run lint` — run Biome checks
@@ -219,7 +219,7 @@ Open `http://localhost:3000` to see the landing page.
 
 ---
 
-## 📦 Production deployment notes
+## Production deployment notes
 
 - Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are configured in production.
 - Run `npx tsc --noEmit` to validate strict TypeScript before deployment.
